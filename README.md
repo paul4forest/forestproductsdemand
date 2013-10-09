@@ -15,7 +15,7 @@ We started writting the program while reproducing estimates
 
 
 We then extended the data coverage up to the most recent available Year (2012)
- and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period See [explore.html](./docs/ExploreData/explore.html) in the folder **\Docs\ExploreData**.
+ and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. See  [explore.md](./docs/ExploreData/explore.md) or [explore.html](./docs/ExploreData/explore.html)   in the folder **\Docs\ExploreData**.
 
 Code 
 ----

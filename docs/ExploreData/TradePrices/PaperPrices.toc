@@ -1,0 +1,3 @@
+\contentsline {subsection}{\numberline {0.1}EU15 Paper and paperboard prices}{1}{subsection.0.1}
+\contentsline {subsection}{\numberline {0.2}Prices by Country}{1}{subsection.0.2}
+\contentsline {subsection}{\numberline {0.3}Prices for the 4 major countries}{1}{subsection.0.3}

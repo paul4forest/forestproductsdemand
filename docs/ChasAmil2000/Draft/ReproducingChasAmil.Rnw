@@ -1,0 +1,254 @@
+\documentclass{scrartcl} % A wider text than  \documentclass{article} 
+
+
+% Configure hyper links
+\usepackage{hyperref} 
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = black, %Colour of internal links
+  citecolor   = black %Colour of citations
+}
+
+
+\title{Reproducing estimates of Chas-Amil and Buongiorno "The demand for paper and paperboard - Econometric model for the European Union"}
+\author{Paul Rougieux}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Chas Amil and buongiorno (2000) estimated demand functions for paper and paperboard products in the European Union (EU15). In the first section, we attempt to reproduce their graphs and estimates for the period 1996-1992, based on FAOSTAT forest products production and trade data and World Bank GDP and deflator data. In a second section we extended the estimation period by 20 years, until 2012. In a third section, we estimated for all EU27 countries but only over the period from 1992 until 2012. 
+\end{abstract}
+
+\setcounter{tocdepth}{2}
+\tableofcontents 
+
+
+<<Load, echo=FALSE, warning=FALSE>>=
+# Code chunks in each sections are independed of each other
+# This load code chunk is all that is needed to run other code chunks
+####################################################
+# Load and prepare consumption, GDP and price data #
+####################################################
+library(ggplot2)
+library(plyr)
+library(xtable)
+setwd("Y:/Macro/Demand Econometric Models/enddata/")
+load("EU15 paper products demand.rdata")
+
+# Create a column consumption at year minus one (t-1)
+pp = ddply(paperProductsDemand, .(Country,Item), mutate, 
+           Consum_t_1 = c(NA,Consumption[-length(Consumption)]))
+
+@
+
+
+\newpage
+\section{Reproducing Chas Amil and Buongiorno}
+\subsection{Consumption of Paper and Paperboard (1969-1995)}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{./figure/ChasAmilConsumption}
+\caption{Original chart reproduced from Chas Amil and Buongiorno. Consumption of paper and paperboard products in the European Union (EU15).}
+\label{fig:ChasAmilConsumption}
+\end{figure}
+
+<<ConsumptionEU15, echo=FALSE, warning=FALSE, fig.pos="h", fig.height=4, out.width=".8\\linewidth", fig.align='center', fig.cap = 'Consumption of paper and paperboard products in EU15, source: FAOSTAT'>>=
+###############################################################
+# Plot consumption of paper and paperboard products in the EU #
+###############################################################
+# Select Consumption data from 1969 to 1995 
+ppc = subset(pp, Year>=1969&Year<=1995, select=c(Item, Country, Year, Consumption))
+ppc = aggregate(ppc["Consumption"], ppc[c("Item","Year")], sum)
+
+# Rename total volume and change Tons to Thousand Tons
+ppc$Item[ppc$Item=="Paper and Paperboard"] = "Total"
+ppc$Consumption = ppc$Consumption/1e3
+
+# Plot total consumption at the european level
+ggplot(data=ppc, aes(x=Year, y=Consumption, colour=Item)) + 
+  geom_line() + xlab("Years") + ylab("Thousad metric Ton") +
+  theme_bw() + theme(legend.position= "bottom") 
+
+@
+
+
+\newpage
+\subsection{Price of paper and paperboard (1969-1995)}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\linewidth]{./figure/ChasAmilPriceEvolution}
+\caption{Original chart reproduced from Chas Amil and Buongiorno. Price Evolution of paper and paperboard products in the European Union.}
+\label{fig:ChasAmilPriceEvolution}
+\end{figure}
+
+<<PriceEU15, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width=".8\\linewidth", fig.align='center', fig.cap ='Price evolution of paper and paperboard products in EU15 in USD of 1987, source: FAOSTAT and own calculations.'>>=
+#################################################################
+# Plot average price of paper and paperboard products in the EU #
+#################################################################
+ppp = subset(pp, Year>=1969&Year<=1995, select=c(Item, Country, Year, Price))
+ppp = aggregate(ppp["Price"], ppp[c("Item","Year")], mean)
+
+# Plot average price of paper and paperboard products 
+ggplot(data=ppp, aes(x=Year, y=Price, colour=Item)) +
+    geom_line() + 
+    scale_y_continuous(breaks=seq(0,1200,200), limits=c(0,1200)) +
+    ggtitle("Real price evolution of paper and paperboard products in the EU ") + 
+    ylab("Price in real US$/ metric ton") +
+    theme_bw() + theme(legend.position= "bottom") 
+
+@
+
+
+
+\newpage
+\subsection{GDP and consumption per capita}
+
+<<GDPPerCapita, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width=".7\\linewidth", fig.align='center', fig.cap ='GDP per capita. source: World Bank.'>>=
+#######################################################################
+# Plot GDP per capita versus consumption per capita of paper products #
+#######################################################################
+# Select Total Paper and paperboard in 1995, add GDP and population data
+pp95 = merge(subset(pp, Year==1995 & Item=="Paper and Paperboard", 
+                    select=c("Country", "Consumption")),
+             subset(GDP,Year==1995, 
+                    select=c("Country", "GDPconstantUSD", "Population")))
+
+# calculate GDP and consumption per capita
+pp95 = mutate(pp95, 
+              GDPPerCapita = GDPconstantUSD / Population,
+              ConsPerCapita = Consumption / Population * 1000)
+
+# Change country to a factor and order them by decreasing GDPpercapita
+pp95$Country = reorder(as.factor(pp95$Country), -pp95$GDPPerCapita)
+
+# Plot GDP per capita
+ggplot(pp95, aes(Country, GDPPerCapita)) +  
+    geom_bar(stat = "identity") + ylab("GDP per capita in US $")
+
+@
+
+
+<<ConsPerCapita, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width=".7\\linewidth", fig.align='center', fig.cap ='Paper and paperboard Consumption per capita. source: FAOSTAT and own calculations.'>>=
+# Plot Consumption per capita
+ggplot(pp95) + geom_point(aes(x=Country, y=ConsPerCapita)) +
+    ylab("Total paper consumption per capita in kg") 
+@
+
+\newpage
+\subsection{Estimating the model}
+Because the Worldbank databank doesn't contain a deflator for Ireland over the time period of interest, we couldn't calculate the GDP in constant USD for Ireland.
+\begin{table}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{./figure/ChasAmilEstimationTable1}
+\caption{Original table reproduced from Chas Amil and Buongiorno. Estimates of demand equations for total paper and paperboard by country.}
+\label{fig:ChasAmilEstimationTable1}
+\end{table}
+    
+
+<<ModelTotalPaper, echo=FALSE, results='asis', warning=FALSE>>=
+
+#############################################
+# Estimate model for Total Paper by Country #
+#############################################
+# Select interesting Years for the linear model and only the total paper value
+# Remove 1969 because Germany doesn't have GDP for that year
+tp = subset(pp, Year>=1970&Year<=1992&Item=="Paper and Paperboard"&
+                # Remove Ireland
+                Country!="Ireland")
+
+# subset(tp,log(GDPconstantUSD)==-Inf) # To find issues in the regressors
+
+
+# Static model (alpha = 1 => delta3=0)
+stm = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price), data=tp)
+print("Static model for pooled countries")
+xtable(stm)
+
+# Is it possible
+# dym = lm(log(Consumption) ~ log(GDPconstantUSD) +
+#              log(Price) + log(Consum_t_1) * Country, data=tp)
+# print(xtable(dym))
+
+#############################
+# Estimate model by Country #
+#############################
+
+# A function that will apply the dynamic model to all countries 
+dynmodel = function(df){
+  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), data=df)
+  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
+  coefs$Country = unique(df$Country)
+  if (nrow(coefs)==2){
+    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
+  }
+  return(coefs)
+}
+
+
+
+# # Apply the dynamic model to each country
+x = ddply(tp, .(Country), dynmodel)
+x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
+         "log.Consum_t_1.", "R_Squared")] 
+x[,-1] = round(x[,-1],2)
+x$Country[is.na(x$R_Squared)] = ""
+
+print(xtable(x),  type = "latex",)
+
+
+# Transform into a matrix 
+# # Because sanitation requires special column names which I could not use in a data.frame
+# mat = data.matrix(x[-1])
+# rownames(mat) = x$Country
+# colnames(mat) = c( "GDP", "P","$C_{t-1}$", "${R}^2$")
+# print(xtable(mat), type = "latex", sanitize.text.function = function(x){x})
+
+@
+
+
+\newpage
+\section{Extenting time series until 2012}
+\subsection{Consumption of Paper and Paperboard (1969-2012)}
+<<ConsumptionEU15Extended, echo=FALSE, warning=FALSE, fig.pos="h", fig.height=4, out.width=".7\\linewidth", fig.align='center', fig.cap = 'Consumption of paper and paperboard products in EU15, source: FAOSTAT'>>=
+###############################################################
+# Plot consumption of paper and paperboard products in the EU #
+###############################################################
+# Select Consumption data from 1969 to 1995 
+ppc = subset(pp, Year>=1969, select=c(Item, Country, Year, Consumption))
+ppc = aggregate(ppc["Consumption"], ppc[c("Item","Year")], sum)
+
+# Rename total volume and change Tons to Thousand Tons
+ppc$Item[ppc$Item=="Paper and Paperboard"] = "Total"
+ppc$Consumption = ppc$Consumption/1e3
+
+# Plot total consumption at the european level
+ggplot(data=ppc, aes(x=Year, y=Consumption, colour=Item)) + 
+    geom_line() + xlab("Years") + ylab("Thousad metric Ton") +
+    theme_bw() + theme(legend.position= "bottom") 
+@
+
+
+
+\subsection{Price of paper and paperboard (1969-2012)}
+
+<<PriceEU15Extended, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width=".7\\linewidth", fig.align='center', fig.cap ='Price evolution of paper and paperboard products in EU15 in USD of 1987, source: FAOSTAT and own calculations'>>=
+#################################################################
+# Plot average price of paper and paperboard products in the EU #
+#################################################################
+ppp = subset(pp, Year>=1969, select=c(Item, Country, Year, Price))
+ppp = aggregate(ppp["Price"], ppp[c("Item","Year")], mean)
+
+# Plot average price of paper and paperboard products 
+ggplot(data=ppp, aes(x=Year, y=Price, colour=Item)) +
+    geom_line() + 
+    scale_y_continuous(breaks=seq(0,1200,200), limits=c(0,1200)) +
+#     ggtitle("Real price evolution of paper and paperboard products in the EU ") + 
+    ylab("Price in real US$/ metric ton") +
+    theme_bw() + theme(legend.position= "bottom") 
+
+@
+
+
+
+\end{document}

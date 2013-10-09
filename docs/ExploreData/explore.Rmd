@@ -1,0 +1,99 @@
+
+Explore demand for forest products
+========================================================
+
+Load data
+--------------------------
+```{r setup, include=FALSE}
+library(ggplot2)
+# set global chunk options
+opts_chunk$set(cache=TRUE)
+options(width=80)
+```
+
+```{r load, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
+load("Y:/Macro/Demand Econometric Models/enddata/EU27 paper products demand.rdata")
+pp = paperProducts
+pp$Consumption = pp$Consumption/1e+06  # Change Tons to Million Tons
+wb$GDPconstantUSD = wb$GDPconstantUSD/1e+09  # Change dollars to Billion dollars
+```
+
+The paper and paperboard table contains consumption data for **`r length(unique(pp$Country))`** countries from `r min(pp$Year)` to `r max(pp$Year)`.  
+In 2012, the overall EU consumption in million m3 per item was:
+```{r, echo=FALSE}
+ddply(subset(pp, Year==2012, select=c(Item,Consumption)),.(Item),summarise, EUconsumption=round(sum(Consumption)))
+```
+
+Consumption of paper and paperboard products in EU-27
+-----------------
+```{r consumptionTotalEU, fig.width=12, fig.height=6, cache=TRUE}
+# Select Consumption data from 1969 to the most recent 
+ppc = subset(pp, Year>=1969, select=c(Item, Country, Year, Consumption))
+ppc = aggregate(ppc["Consumption"], ppc[c("Item","Year")], sum)
+
+# Plot total consumption at the european level
+ggplot(data=ppc, aes(x=Year, y=Consumption, colour=Item)) + 
+    geom_line(size=1) + ylab("Million metric Ton") +
+    theme_bw() 
+
+```
+
+
+### Total consumption of paper and paperboard by country 
+```{r consumptionTotalbyCountry, fig.width=13, fig.height=8, cache=TRUE}
+ggplot(data=subset(pp, Item=="Total Paper and Paperboard")) + 
+    geom_line(aes(x=Year, y=Consumption, colour=Item), size=1) + 
+    xlab("Year") + ylab("Million metric Ton") +
+    theme_bw() + theme(legend.position= "none") + facet_wrap(~Country, scales = "free_y")
+
+```
+
+Note to Paul: try an interactive map with [GoogleVis](http://rpubs.com/gallery/googleVis).
+
+### GDP by country
+```{r GDPbyCountry, fig.width=13, fig.height=8, warning=FALSE, cache=TRUE}
+# 1 plot per country
+ggplot(data=wb, aes(x=Year, y=GDPconstantUSD)) + 
+    geom_line(size=1) + xlab("Years") + ylab("GDP (constant) in 2010 Billion USD ") +
+    theme_bw() + theme(legend.position= "none") + facet_wrap(~Country, scales = "free_y")
+```
+
+Prices of paper and paperboard products
+----------------
+### Price for Finland
+```{r priceFinland, fig.width=10, fig.height=6, cache=TRUE}
+ggplot(data=subset(pp, Country=="Finland")) +
+    geom_line(aes(x=Year, y=Price, color=Item)) +
+    ylab("Price in (2010) constant USD /m3")
+```
+
+
+### Prices per country - remove countries with a particularly high price
+Prices are a ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000. Prices are expressed in constant US dollard of 2010.
+```
+Price = (Import_Value + Export_Value)/
+            (Import_Quantity + Export_Quantity) / DeflUS *1000)
+```
+
+```{r pricesByCountry, fig.width=12, fig.height=8, warning=FALSE, cache=TRUE}
+library(scales)
+ggplot(data=subset(pp, !Country%in%c("Slovakia", "Malta"))) +
+    geom_line(aes(x=Year, y=Price, color=Item))  + facet_wrap( ~ Country) + 
+    ylab("Price in (2010) constant USD /m3") + scale_y_continuous(labels = dollar)
+
+```
+
+### Trade prices by Country
+```{r tradePricesByCountry, fig.width=12, fig.height=8, warning=FALSE, cache=TRUE}
+ggplot(data=subset(pptrade, !Country%in%c("Slovakia", "Malta"))) +
+    geom_line(aes(x=Year, y=Price_Trade, color=Item, linetype = Trade))+
+    facet_wrap( ~ Country) + 
+    ylab("Price in (2010) constant USD /m3")
+
+# Sweden Germany France Finland UK
+ggplot(data=subset(pptrade, Country%in%c("Sweden", "Germany", "France", "Finland"))) +
+    geom_line(aes(x=Year, y=Price_Trade, color=Item, linetype = Trade))  + 
+    facet_wrap( ~ Country) + ylab("Price in (2010) constant USD /m3")
+
+```
+

@@ -1,0 +1,119 @@
+\documentclass{scrartcl} % A wider text than  \documentclass{article} 
+
+% Configure hyper links
+\usepackage{hyperref} 
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = black, %Colour of internal links
+  citecolor   = black %Colour of citations
+}
+
+\title{Paper product prices in the EU15 based on FAO import and Export values}
+\author{Paul Rougieux}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Data was prepared to reproduced a paper on EU15 countries. That is why there are only those countries. 
+\end{abstract}
+
+
+
+<<Load, echo=FALSE, warning=FALSE>>=
+# Code chunks in each sections are independed of each other
+# This load code chunk is all that is needed to run other code chunks
+####################################################
+# Load and prepare consumption, GDP and price data #
+####################################################
+library(ggplot2)
+library(plyr)
+library(xtable)
+
+setwd("Y:/Macro/Demand Econometric Models/enddata/")
+load("EU15 paper products demand.rdata")
+
+# Rename data frame
+pp = paperProductsDemand
+rm(paperProductsDemand)
+@
+
+
+
+\subsection{EU15 Paper and paperboard prices}
+Prices for all EU15 countries together
+<<PriceEU15Extended, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width="1\\linewidth", fig.align='center', fig.cap ='Price evolution of paper and paperboard products in EU15 in USD of 1987, source: FAOSTAT and own calculations'>>=
+#################################################################
+# Plot average price of paper and paperboard products in the EU #
+#################################################################
+ppp = subset(pp, Year>=1969, select=c(Item, Country, Year, Price))
+ppp = aggregate(ppp["Price"], ppp[c("Item","Year")], mean)
+
+# Plot average price of paper and paperboard products 
+ggplot(data=ppp, aes(x=Year, y=Price, colour=Item)) +
+    geom_line() + 
+    scale_y_continuous(breaks=seq(0,1200,200), limits=c(0,1200)) +
+#     ggtitle("Real price evolution of paper and paperboard products in the EU ") + 
+    ylab("Price in real US$/ metric ton") +
+    theme_bw() + theme(legend.position= "bottom") 
+@
+
+
+
+\subsection{Prices by Country }
+One graph by product, one line for each country. 
+Highest and lowest values are highlighted. 
+<<PriceByCountry, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=5, out.width="1\\linewidth", fig.align='center', fig.cap ='Price by Country, highest and lowest country highlighted'>>=
+# Select highest and lowest price under each Item 
+pprange = ddply(pp, .(Item), subset, Price%in%range(Price, na.rm=TRUE))
+
+# Plot for all EU15 countries
+ggplot(data=pp, aes(x=Year, y=Price, colour=Country, label=Country)) +
+    geom_line()  + facet_wrap("Item") +
+    ylab("Price in 1987 USD") +
+    # add country names for the 5 highest and 5 lowest prices
+    geom_text(data=pprange) +
+    theme_bw() + theme(legend.position= "bottom")  +
+    guides(col = guide_legend(nrow = 3))
+@
+
+\newpage
+\subsection{Prices for 4 major countries}
+One graph by country one line for each product. Then one graph by product, one line for each country.
+<<Price4MajorCountries, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width="1\\linewidth", fig.align='center', fig.cap ='Price evolution of paper and paperboard products in France, Finland, UK and Germany in USD of 1987'>>=
+####################################################
+# Plot price series for France Finland and Germany #
+####################################################
+# The EU15 price series are parallel to each other.
+ppp = subset(pp, Country %in% c("France", "Finland", "Germany", "United Kingdom" ))
+
+# One graph by country one line for each product
+ggplot(data=ppp, aes(x=Year, y=Price, colour=Item)) +
+    geom_line()  + facet_wrap("Country")+
+    theme_bw() + theme(legend.position= "bottom") 
+
+# One graph by product, one line for each country
+ggplot(data=ppp, aes(x=Year, y=Price, colour=Country)) +
+    geom_line()  + facet_wrap("Item")+
+    theme_bw() + theme(legend.position= "bottom") 
+@
+
+
+\subsection{Price histograms}
+Bar heights correspond to the number of countries in each price range.
+<<PriceHistogram, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width="1\\linewidth", fig.align='center', fig.cap ='Price histogram'>>=
+# Plot 4 histograms, one for each product and total
+for (year in (1970+seq(0,30,10))){
+    print(year)
+    p = ggplot(subset(pp, Year==year), aes(Price)) +
+        geom_histogram(binwidth = 100)+
+        facet_wrap(~ Item ) +
+        scale_x_continuous(limits=c(0,2000))+
+        scale_y_continuous(limits=c(0,15))+
+        ggtitle(paste("Price histogram in", year))     
+    print(p)
+}
+
+@
+
+\end{document}

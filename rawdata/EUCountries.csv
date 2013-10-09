@@ -1,0 +1,28 @@
+Faostat_group_code,Group_name,FAOST_CODE,Country,ISO2_WB_CODE,Start_Year,End_Year,EU15,Euro_Start_Year,ExchRLCUtoEuro
+5706,European Union,11,Austria,AT,,,1,1999,13.7603
+5706,European Union,255,Belgium,BE,2000,,0,1999,40.3399
+5706,European Union,27,Bulgaria,BG,,,0,0,NA
+5706,European Union,50,Cyprus,CY,,,0,2008,0.585274
+5706,European Union,167,Czech Republic,CZ,1993,,0,0,NA
+5706,European Union,54,Denmark,DK,,,1,0,NA
+5706,European Union,63,Estonia,EE,1992,,0,2011,15.6466
+5706,European Union,67,Finland,FI,,,1,1999,5.94573
+5706,European Union,68,France,FR,,,1,1999,6.55957
+5706,European Union,79,Germany,DE,,,1,1999,1.95583
+5706,European Union,84,Greece,GR,,,1,2001,340.75
+5706,European Union,97,Hungary,HU,,,0,0,NA
+5706,European Union,104,Ireland,IE,,,1,1999,0.787564
+5706,European Union,106,Italy,IT,,,1,1999,1936.27
+5706,European Union,119,Latvia,LV,1992,,0,0,NA
+5706,European Union,126,Lithuania,LT,1992,,0,0,NA
+5706,European Union,256,Luxembourg,LU,2000,,0,1999,40.3399
+5706,European Union,134,Malta,MT,,,0,2008,0.4293
+5706,European Union,150,Netherlands,NL,,,1,1999,2.20371
+5706,European Union,173,Poland,PL,,,0,0,NA
+5706,European Union,174,Portugal,PT,,,1,1999,200.482
+5706,European Union,183,Romania,RO,,,0,0,NA
+5706,European Union,199,Slovakia,SK,1993,,0,2009,30.126
+5706,European Union,198,Slovenia,SI,1992,,0,2007,239.64
+5706,European Union,203,Spain,ES,,,1,1999,166.386
+5706,European Union,210,Sweden,SE,,,1,0,NA
+5706,European Union,229,United Kingdom,GB,1,0,1,0,NA

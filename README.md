@@ -36,9 +36,9 @@ You may run the following command to run all tests.
 
 Version Control
 ---------------
-I'm using GIT and I followed this advice to set it up:  [create a repository](https://help.github.com/articles/create-a-repo).
+I'm using GIT and I followed this advice to set it up:  [create a repository](https://help.github.com/articles/create-a-repo).  
 
-FAOSTAT developper Michael Kao is also using git: [source code of faostat](https://github.com/mkao006/FAOSTATpackage).
+FAOSTAT developper Michael Kao is also using git: [source code of the R FAOSTAT package](https://github.com/mkao006/FAOSTATpackage).
 
 Commands I've used so far to upload content to github.com:
 ```

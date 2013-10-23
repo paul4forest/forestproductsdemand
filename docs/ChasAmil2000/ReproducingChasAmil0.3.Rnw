@@ -20,7 +20,7 @@ library(ggplot2)
 library(plyr)
 library(xtable)
 
-setwd("Y:/Macro/Demand Econometric Models/enddata/")
+setwd("Y:/Macro/forestproductsdemand/enddata/")
 load("EU15 paper products demand.rdata")
 
 # Create a column consumption at year minus one (t-1)
@@ -168,7 +168,7 @@ tp = subset(tp, !(Country=="Germany"&Year==1969))
 # Estimate model by Country #
 #############################
 
-# A function that will apply the dynamic model to all countries 
+# A function that applies the dynamic model to a country 
 dynModelCountry = function(dtf){
   dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
            data=dtf)
@@ -180,7 +180,7 @@ dynModelCountry = function(dtf){
   return(coefs)
 }
 
-# # Apply the dynamic model to each country
+# # Apply the dynamic model to each and all countries
 x = ddply(tp, .(Country), dynModelCountry)
 
 
@@ -325,6 +325,17 @@ ggplot(data=ppp, aes(x=Year, y=Price, colour=Item)) +
     theme_bw() + theme(legend.position= "bottom") 
 @
 
+
+
+\subsection{Plot corelation}
+
+<<Plotcorelation, echo=FALSE, warning=FALSE,  fig.pos="h", fig.height=4, out.width=".7\\linewidth", fig.align='center', fig.cap ='Price evolution of paper and paperboard products in EU15 in USD of 1987, source: FAOSTAT and own calculations'>>=
+plot(subset(pp, Item=="Total Paper and Paperboard"&Year<1995, select=-c(Item,Country)),
+     main="Corelation before 1995")
+
+plot(subset(pp, Item=="Total Paper and Paperboard", select=-c(Item,Country)),
+     main="Corelation over the whole period")
+@
 
 \newpage
 R session info

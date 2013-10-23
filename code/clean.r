@@ -21,13 +21,10 @@ baseyear = 2010 # Define the baseyear for constant GDP calculations and price de
 ####################################
 # Load FAOSTAT and World Bank data #
 ####################################
-setwd("Y:/Macro/Demand Econometric Models/rawdata/")
+setwd("Y:/Macro/forestproductsdemand/rawdata/")
 print(load(file = "Paper and paperboard.rdata"))
 print(load(file = "GDP_Deflator_Exchange_Rate_Population.rdata"))
-
-# Load EU27 countries
 EU = read.csv("EUCountries.csv", as.is=TRUE)
-
 
 # Select products for EU27 Countries
 pp = subset(paperAndPaperboardProducts$entity, FAOST_CODE %in% EU$FAOST_CODE)
@@ -107,23 +104,29 @@ US = subset(GDPDeflExchRPop, Country =="United States", select=c(Country,Year,De
 US = deflator(US)
 names(US) = c("Country", "Year", "Deflator", "DeflUS")
 
+# Calculate the EUro area deflator for baseyear, rename column to DeflEUR
+EUR = subset(GDPDeflExchRPop, Country == "Euro area", select=c(Country, Year, Deflator))
+EUR = deflator(EUR)
+names(EUR) = c("Country", "Year", "Deflator", "DeflEUR")
+
 
 ##############################################
 # Calculate GDP in constant USD of base year #
 ##############################################
 wb = ddply(wb, .(Country), mutate,
-            GDPconstantUSD = GDPcurrentLCU / (DeflBase * ExchReur[Year==baseyear]))
+           GDPconstantUSD = GDPcurrentLCU / (DeflBase * ExchReur[Year==baseyear]))
 
 
-##################################
-# Calculate apparent consumption #
-##################################
+################################################
+# Calculate apparent consumption and net trade #
+################################################
 # Change NA values to 0 - Not recommended 
 # But makes sence at least that import into Finland and Sweden are 0
 pp[is.na(pp)] = 0
 
-# Calculate apparent consumption
-pp = mutate(pp, Consumption = Production + Import_Quantity - Export_Quantity)
+# Calculate apparent consumption and net trade
+pp = mutate(pp, Consumption = Production + Import_Quantity - Export_Quantity, 
+            Net_Trade =  Export_Quantity - Import_Quantity)
 
 # Add GDPconstantUSD
 pp = merge(pp, wb[c("Year","Country","GDPconstantUSD")])
@@ -170,83 +173,72 @@ pptrade = reshape(pptrade,
                   timevar="Trade", times=c("Import", "Export"), 
                   direction="long" )
 
+row.names(pptrade) = NULL
+
 # Check if information is kept
 stopifnot(2*nrow(pp) == nrow(pptrade))
 summary(pptrade$Quantity[pptrade$Trade=="Import"] - pp$Import_Quantity)
 summary(pptrade$Price_Trade[pptrade$Trade=="Import"] - pp$Import_Price)
 
+
+
 ##################################################################
 # Create an aggregated table of consumption and price for Europe #
 ##################################################################
-paperProducts.aggregate = subset(pp, select=c("Item", "Year", "Consumption", "Production", 
-                                              "Import_Quantity", "Export_Quantity", 
-                                              "Price", "Import_Price", "Export_Price" ))
+ppagg = subset(pp, select=c("Item", "Year", "Consumption", "Production", "Net_Trade",
+                            "Import_Quantity", "Export_Quantity", 
+                            "Import_Value", "Export_Value"))
 
 # Remove NA values not good, but do it here to calculate the aggregate
-paperProducts.aggregate[is.na(paperProducts.aggregate)] = 0 
+ppagg[is.na(ppagg)] = 0 
 
-#  Sum volumes and average prices over the European Union
-paperProducts.aggregate = ddply(paperProducts.aggregate, .(Item, Year),summarise, 
-                                Consumption = sum(Consumption), Production = sum(Production),
-                                Import_Quantity = sum(Import_Quantity), Export_Quantity = sum(Export_Quantity),
-                                Price = mean(Price), Import_Price=mean(Import_Price), 
-                                Export_Price = mean(Export_Price))
 
-paperProducts.aggregate = reshape(paperProducts.aggregate, 
-                                  idvar=c("Year", "Item"), 
-                                  varying=list(c("Consumption", "Production", "Import_Quantity", "Export_Quantity"),
-                                               c("Price","Price", "Import_Price", "Export_Price")), 
-                                  v.names=c("Quantity", "Price"),
-                                  timevar="Element", times=c("Consumption", "Production", "Import", "Export"), 
-                                  direction="long" )
+#  Sum volumes and values over the European Union
+ppagg = aggregate(ppagg[c("Consumption", "Production", "Net_Trade",
+                         "Import_Quantity", "Export_Quantity", 
+                         "Import_Value", "Export_Value")], 
+                 ppagg[c("Item", "Year")],sum)
+
+# Add GDP deflator for the USA
+ppagg = merge(ppagg, subset(US, select=c(Year,DeflUS)))
+
+# Add GDP deflator for the EU
+ppagg = merge(ppagg, 
+              subset(GDPDeflExchRPop, Country=="European Union", 
+                     select=c(Year, Deflator)))
+
+
+# Ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000
+ppagg = mutate(ppagg, Price = (Import_Value + Export_Value)/
+                   (Import_Quantity + Export_Quantity) / DeflUS *1000)
+#                PriceConstantEURO = 
+
+
+elements = c("Consumption", "Production", "Net_Trade",
+             "Import_Quantity", "Export_Quantity", 
+             "Import_Value", "Export_Value","Price")
+
+ppagg = reshape(ppagg, 
+                idvar=c("Year", "Item"), 
+                varying=list(elements), 
+                times=factor(elements, ordered=TRUE, levels=elements), 
+                timevar="Element", v.names=c("Value"),
+                direction="long" )
+row.names(ppagg) = NULL
+ppagg$DeflUS = NULL
 
 ####################
 # Save to end data #
 ####################
-setwd("Y:/Macro/Demand Econometric Models/enddata/")
-
 # Keep Consumption, price and revenue, remove Production and trade data 
 paperProducts = subset(pp,select=c(Year, Country, Item, 
-                                   Price, Consumption, GDPconstantUSD,
+                                   Price, Consumption, Net_Trade,
+                                   GDPconstantUSD,
                                    Import_Price, Export_Price))
 
 # Sort 
 paperProducts = arrange(paperProducts, Item, Country, Year)
 
 # Save to RDATA file
-save(paperProducts, pptrade, wb, file="../enddata/EU27 paper products demand.rdata")
+save(paperProducts, ppagg, pptrade, wb, file="../enddata/EU27 paper products demand.rdata")
 
-
-# See tests in the /tests directory
-
-
-################
-# Explore Raw data # 
-################
-# visualise missing values and explore specific data issues such as entry in the Euro area
-
-
-# Countries that don't have an exchange rate in 2005 # Should contain EURO area countries
-unique(wb$Country[is.na(wb$ExchR) & wb$Year==2005])
-
-# Euro Area has the Exchange rate from 1999 or from the country's entry into the euro zone
-subset(GDPDeflExchRPop, Country=="Euro area") # or
-subset(GDPDeflExchRPop, ISO2_WB_CODE=="XC")
-
-# European Union population
-plot(subset(GDPDeflExchRPop, Country=="European Union", select=c(Year,Population)))
-
-# Show FAO country and region metatables for France
-subset(FAOcountryProfile, ISO2_WB_CODE=="FR")
-subset(FAOregionProfile, FAOST_CODE==68)
-
-# Euro area countries
-subset(EU,Euro_Start_Year>0, select=c("Country", "Euro_Start_Year","ExchRLCUtoEuro"))
-# as of 2014 add LVL 0.702804 (Latvian lats)
-
-# order wb by Country and Year
-wb = arrange(wb, Country, Year)
-
-######################
-# Explore final data #
-######################

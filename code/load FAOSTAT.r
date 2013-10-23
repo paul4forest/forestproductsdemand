@@ -75,6 +75,15 @@ paperAndPaperboardProducts = list(entity=rbind(newsprint$entity,
                                                    otherPaperAndPaperboard$aggregates,
                                                    totalPaperAndPaperboard$aggregates))
 
+sawnwoodC = FAO.download(1632, 5516, 5616, 5622, 5916, 5922)
+sawnwoodNC = FAO.download(1633, 5516, 5616, 5622, 5916, 5922)
+sawnwoodTotal = FAO.download(1872, 5516, 5616, 5622, 5916, 5922)
+sawnwood = list(entity = rbind(sawnwoodC$entity, 
+                               sawnwoodNC$entity,
+                               sawnwoodTotal$entity),
+                aggregates = rbind(sawnwoodC$aggregates, 
+                                   sawnwoodNC$aggregates, 
+                                   sawnwoodTotal$aggregates))
 
 ################################
 # Save objects in R data files #
@@ -82,6 +91,8 @@ paperAndPaperboardProducts = list(entity=rbind(newsprint$entity,
 save(paperAndPaperboardProducts, countrycodes,
      file = "Paper and paperboard.RData")
 
+save(sawnwood, countrycodes, 
+     file="sawnwood.RData")
 
 ############
 # Metadata #

@@ -1,0 +1,9 @@
+\contentsline {section}{\numberline {1}Reproducing Chas Amil and Buongiorno estimates for the period 1969-1995}{2}{section.1}
+\contentsline {subsection}{\numberline {1.1}Chart of Paper and Paperboard consumption}{2}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Chart of paper and paperboard prices}{3}{subsection.1.2}
+\contentsline {subsection}{\numberline {1.3}Charts of GDP and consumption per capita}{4}{subsection.1.3}
+\contentsline {subsection}{\numberline {1.4}Estimating demand functions by country}{5}{subsection.1.4}
+\contentsline {subsection}{\numberline {1.5}Estimating demand equations for pooled countries}{7}{subsection.1.5}
+\contentsline {section}{\numberline {2}Extenting time series until 2012}{8}{section.2}
+\contentsline {subsection}{\numberline {2.1}Chart of Paper and Paperboard Consumption (1969-2012)}{8}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Chart of paper and paperboard prices (1969-2012)}{8}{subsection.2.2}

@@ -41,11 +41,11 @@ I'm using GIT and I followed this advice to set it up:  [create a repository](ht
 ```
 git pull origin master
 git add <filename>
-git commit 
+git commit -m "Message that explains my changes to the files"
 git push origin master
 ```
-Alternatively "git commit -a"" is a replacement for "git add"" and "git commit".
-
+Alternatively "git commit -a"" is a replacement for "git add"" and "git commit".  
+More version control commands in [my blog](http://paulremote.blogspot.fr/2013/10/git-commands.html)
 
 Notes
 =====

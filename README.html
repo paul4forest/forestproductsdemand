@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Documents </title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<p>This R program estimates demand elasticites for forest products with respect to price and revenue.</p>
+
+<p><strong>Data sources</strong>: FAOSTAT and World Bank downloaded with the FAOSTAT module<br/>
+<strong>Output</strong>: Graphs and table of estimated elasticities<br/>
+<strong>Author</strong>: Paul Rougieux, European Forest Institute  </p>
+
+<h2>Documents </h2>
+
+<p>We started writting the program while reproducing estimates 
+ of demand elasticities in a paper by Chas Amil and Buongiorno.
+ This paper covered EU15 countries from 1969 to 1995.
+ See our attempt at reproducing the same estimates in the folder: <strong>\Docs\ChasAmil2000</strong>  </p>
+
+<p>We then extended the data coverage up to the most recent available Year (2012)
+ and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. See  <a href="./docs/ExploreData/explore.md">explore.md</a> or <a href="./docs/ExploreData/explore.html">explore.html</a>   in the folder <strong>\Docs\ExploreData</strong>.</p>
+
+<h2>Code </h2>
+
+<p>The following R scripts are in the /code folder</p>
+
+<ul>
+<li>load FAOSTAT.r</li>
+<li>load WorldBank.r</li>
+<li>clean EU15PaperDemand 0.6.r to prepare data for the ChasAmil 2000 estimates</li>
+<li>clean.r cleans world bank and FAOSTAT data to extract consumption and prices</li>
+<li>And estimation scripts</li>
+</ul>
+
+<h2>Tests</h2>
+
+<p>A &ldquo;safety belt&rdquo; is located in the /tests directory. It uses the <a href="http://journal.r-project.org/archive/2011-1/RJournal_2011-1_Wickham.pdf">testthat</a>(external link) package.
+You may run the following command to run all tests.</p>
+
+<pre><code>    test_dir(&quot;Y:/Macro/Demand Econometric Models/tests/&quot;)
+</code></pre>
+
+<h2>Version Control</h2>
+
+<p>I&#39;m using GIT and I followed this advice to set it up:  <a href="https://help.github.com/articles/create-a-repo">create a repository</a>. FAOSTAT developper Michael Kao is also using git: <a href="https://github.com/mkao006/FAOSTATpackage">source code of the R FAOSTAT package</a>. Commands I&#39;ve used so far to upload content to <a href="https://github.com/paul4forest/forestproductsdemand">github.com/paul4forest/forestproductsdemand</a>:</p>
+
+<pre><code>git pull origin master
+git add filename
+git commit
+git push origin master
+</code></pre>
+
+</body>
+
+</html>
+

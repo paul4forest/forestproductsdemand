@@ -1,28 +1,35 @@
 Demand for paper and paperboard products in the European Union
 ========================================================
+* [Consumption, Production and Trade](#CPT)
+* [Consumption](#Consumption)
+ * [Total consumption by Country](#TCbyCountry)
+ * [Consumption of Graphics paper and other paper by Country](#CGPOpapbyCountry)
+ * [Consumption and net trade by Country](#CNTbyCountry)
+* [GDP by Country](#GDPbyCountry)
+* [Prices](#Prices)
+* [Distributions](#Distribution)
+* [Plot log of the estimation data](#EstimationData)
 ```{r setup, include=FALSE}
 library(ggplot2)
-
-# Set global chunk options
-opts_chunk$set(cache=TRUE)
+opts_chunk$set(cache=TRUE) # Set global chunk options
 options(width=80)
 ```
 
+### Load data
 FAOSTAT is the source of forest products data and
 World Bank is the source of GDP, deflator and exchange rate data.  
-This code chunk loads data frames:
 ```{r load, results='show', warning=FALSE, message=FALSE}
 print(load("Y:/Macro/forestproductsdemand/enddata/EU27 paper products demand.rdata"))
 pp = paperProducts # Give a shorter name to the data frame
 ```
 
+<a name="CPT"></a>
 
 Consumption, Production and Trade Volumes
 -----------------
-In the following file, we explore a data table containing paper and paperboard consumption data for **`r length(unique(pp$Country))`** countries from `r min(pp$Year)` to `r max(pp$Year)`.  
-**In 2012, the overall EU consumption, production and trade in million Tons per item was:**
+In the following file, we explore a data table containing paper and paperboard consumption data for __`r length(unique(pp$Country))`__ countries from `r min(pp$Year)` to `r max(pp$Year)`.  
+__In `r max(pp$Year)`, the overall EU consumption, production and trade in million Tons per item was:__
 ```{r, echo=FALSE}
-
 ppaggLast = subset(ppagg, Year==max(ppagg$Year)&
                        !Element%in%c("Import_Value", "Export_Value","Price"))
 ppaggLast$Value = round(ppaggLast$Value/1e6)
@@ -32,7 +39,7 @@ ppaggLast = reshape(ppaggLast, drop=c("Year"),
 # names(ppaggLast) = sub("Value.","",names(ppaggLast)) 
 names(ppaggLast) = c("Item", "Consumption", "Production",
                      "Net_Trade", "Import", "Export")
-print(ppaggLast)
+print(ppaggLast) # This will be displaid on the HTML page
 
 # Prepare a table of big consumers and big exporters for later use
 bigconsumers = subset(pp, Year==2012&Consumption>5e6&Item=="Total Paper and Paperboard", 
@@ -52,6 +59,11 @@ ggplot(data=subset(ppagg, !Element%in%c("Import_Value", "Export_Value","Price"))
 ```
 Net trade is slightly in favor of exports for most products except for newsprint. From bilateral trade statistics (not shown here), we know that most of the trade is happening inside the European Union.
 
+
+<a name="Consumption"></a>
+Consumption
+-----------
+<a name="TCbyCountry"></a>
 ### Consumption by country 
 Apparent consumption of Total paper and paperboard by country 
 ```{r consumptionbyCountry, fig.width=13, fig.height=8}
@@ -63,6 +75,8 @@ ggplot(data=subset(pp, Item=="Total Paper and Paperboard"))+
 ```
 The largest consumers of paper and paperboard products are `r bigconsumers$Country`.
 
+
+<a name="CGPOpapbyCountry"></a>
 
 ### Apparent consumption of graphics paper and other paper and paperboard by country 
 
@@ -87,6 +101,8 @@ scale_colour_manual(values = c("Blue", "Green"))
 
 ```
 
+<a name="CNTbyCountry"></a>
+
 ### Consumption and Net Trade by Country
 Apparent consumption and Net Trade of Total paper and paperboard by country 
 ```{r consumptionNetTradebyCountry, fig.width=13, fig.height=8}
@@ -101,8 +117,7 @@ ggplot(data=subset(pp, Item=="Total Paper and Paperboard"))+
 ```
 Large producing countries such as Finland and Sweden produce over 10 million tons of paper products per year and export most of their production. Germany is the largest consumer with over 20 million tons of paper products consumed annually, Germany's net trade is slightly positive. France is the second largest consumer and is slightly importing. The United Kingdom also consumes around 10 million tons annually and is importing more than half of its production.
 
-
-
+<a name="GDPbyCountry"></a>
 
 ### GDP by country
 ```{r GDPbyCountry, fig.width=13, fig.height=8, warning=FALSE}
@@ -112,6 +127,9 @@ ggplot(data=wb, aes(x=Year, y=GDPconstantUSD/1e9)) +
     theme_bw() + theme(legend.position= "none") + facet_wrap(~Country, scales = "free_y")
 
 ```
+
+
+<a name="Prices"></a>
 
 Prices of paper and paperboard
 ----------------
@@ -155,3 +173,70 @@ ggplot(data=subset(pptrade, Country%in%c("Sweden", "Germany", "France", "Finland
     facet_wrap( ~ Country) + ylab("Price in (2010) constant USD /m3")
 ```
 
+<a name="Distribution"></a>
+
+Distribution of the estimation data for 4 important years
+---------------
+## Cross sectional distribution of demand 
+Number of countries for a given demand volume in million m3
+```{r histdemand, fig.width=12, fig.height=8, warning=FALSE}
+# 1980, 1990, 2000, 2010
+pp4hist = subset(pp, Year%in%c(1980, 1990, 2000, 2010)&Item=="Total Paper and Paperboard")
+ggplot(data=pp4hist) + geom_histogram(aes(x=Consumption/1e6), binwidth=1) + facet_wrap(~Year)
+```
+Number of countries for a given demand volume in log of the volume in m3
+```{r histdemandlog, fig.width=12, fig.height=8, warning=FALSE}
+# Consumption in log
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(Consumption)), binwidth=1) + facet_wrap(~Year)
+```
+
+## Distribution of prices
+```{r histGDPlog1, fig.width=12, fig.height=8, warning=FALSE}
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(Price)), binwidth=0.1) + facet_wrap(~Year)
+```
+
+## Distribution of GDP
+```{r histGDPlog2, fig.width=12, fig.height=8, warning=FALSE}
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(GDPconstantUSD)), binwidth=1) + facet_wrap(~Year)
+```
+
+
+<a name="EstimationData"></a>
+Plot log of the estimation data ! add colors per year, then colors per net trade !
+-------------------------------
+We will estimate the model
+$$ log(Consumption) = \beta_0 + \beta_1 log(GDP) + $$
+
+Lets look at the relationship between log(Consumption) and log(GDP) first.
+### Total Paper and Paperboard
+2012 data in red
+```{r}
+plot(log(Consumption) ~ log(GDPconstantUSD), data=subset(pp, Item=="Total Paper and Paperboard"))
+points(log(Consumption) ~ log(GDPconstantUSD), 
+     data=subset(pp, Item=="Total Paper and Paperboard"&Year==2012), col="red")
+```
+
+### Explore the influence of Year and Net_Trade by country
+Sort countries by Net_Trade, then display a color for each country
+```{r warning=FALSE, fig.width=12, fig.height=8}
+ppc = subset(pp, Item=="Total Paper and Paperboard"&Year==2012)
+ppc = ppc[order(ppc$Net_Trade),]
+pp$Country = factor(pp$Country, levels= ppc$Country, ordered=TRUE)
+p = ggplot(pp, aes(x=log(GDPconstantUSD), y=log(Consumption))) + facet_wrap(~Item)
+p + geom_point(aes(alpha=Year, color=Country))  
+```
+
+
+### Total Paper and Paperboard
+```{r}
+plot(log(Consumption) ~ log(Price), data=subset(pp, Item=="Total Paper and Paperboard"))
+points(log(Consumption) ~ log(Price), 
+       data=subset(pp, Item=="Total Paper and Paperboard"&Year==2012), col="red")
+```
+
+### All products
+```{r, warning=FALSE, fig.width=12, fig.height=8}
+p = ggplot(pp,aes(x=log(Price), y=log(Consumption), alpha=Year)) + facet_wrap(~Item)
+p + geom_point(aes(color=Country, alpha=Year)) 
+```
+We can clearly see that countries that don't trade that much, have higher prices.

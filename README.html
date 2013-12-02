@@ -172,20 +172,66 @@ hr {
 <h2>Tests</h2>
 
 <p>A &ldquo;safety belt&rdquo; is located in the /tests directory. It uses the <a href="http://journal.r-project.org/archive/2011-1/RJournal_2011-1_Wickham.pdf">testthat</a>(external link) package.
-You may run the following command to run all tests.</p>
+Run the following command to run all tests.</p>
 
-<pre><code>    test_dir(&quot;Y:/Macro/Demand Econometric Models/tests/&quot;)
+<pre><code>    test_dir(&quot;tests&quot;)
 </code></pre>
+
+<p>For a little more verbose messages use the Tap reporter:</p>
+
+<pre><code>    test_dir(&quot;tests/&quot;, reporter=&quot;Tap&quot;)
+</code></pre>
+
+<p>Remark: Because I usually run all tests with the command test_dir(&ldquo;tests&rdquo;)
+the working directory is set to /tests. This is inconvenient in practice.
+Therefore I begin each test file by changing the working directory to the root project directory &ldquo;..&rdquo;.</p>
+
+<h2>Working directory</h2>
+
+<p><a href="http://stat405.had.co.nz/lectures/05-shortcuts.pdf">Hadley Wickham recommends</a> not to setwd() in a script.<br/>
+Currently, many scripts mentionned above start with a call to setwd() with an absolute path. This is a bad practice. Change ongoing.</p>
 
 <h2>Version Control</h2>
 
 <p>I&#39;m using GIT and I followed this advice to set it up:  <a href="https://help.github.com/articles/create-a-repo">create a repository</a>. FAOSTAT developper Michael Kao is also using git: <a href="https://github.com/mkao006/FAOSTATpackage">source code of the R FAOSTAT package</a>. Commands I&#39;ve used so far to upload content to <a href="https://github.com/paul4forest/forestproductsdemand">github.com/paul4forest/forestproductsdemand</a>:</p>
 
 <pre><code>git pull origin master
-git add filename
-git commit
+git add &lt;filename&gt;
+git commit -m &quot;Message that explains my changes to the files&quot;
 git push origin master
 </code></pre>
+
+<p>Alternatively &ldquo;git commit -a&rdquo;&ldquo; is a replacement for &quot;git add&rdquo;&ldquo; and &quot;git commit&rdquo;.<br/>
+More version control commands in <a href="http://paulremote.blogspot.fr/2013/10/git-commands.html">my blog</a></p>
+
+<h1>Notes</h1>
+
+<p>Note to Paul: try an interactive map with <a href="http://rpubs.com/gallery/googleVis">GoogleVis</a>.</p>
+
+<h2>Comments by AL</h2>
+
+<p>Change Prices in EUR as effect of EUR USD exchange rate mighjt be important after 2000</p>
+
+<p>Add consumption and trade of pulp graphs</p>
+
+<p>Ask Antonello about impact of local price with respect to international price
+when estimating demand functions</p>
+
+<p>Ask Antonello to get at login for the Free Github account of the LEF</p>
+
+<p>Check EDX and coursera </p>
+
+<h2>Further comments by LH in the train to Lillehammer</h2>
+
+<p>Structural change will be different in
+  graffics paper: newsprint + printing &amp; writting paper
+  as in packaging paper for example.
+  Packacging is included under other paper and paper board</p>
+
+<p>When analysing demand for forest products 
+Deflate out GDP inpact as first start to analyse effects beyond the economic impacts</p>
+
+<p>Is sawwwod a substutue or a complement for other material?</p>
 
 </body>
 

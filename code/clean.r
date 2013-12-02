@@ -21,14 +21,14 @@ baseyear = 2010 # Define the baseyear for constant GDP calculations and price de
 ####################################
 # Load FAOSTAT and World Bank data #
 ####################################
-setwd("Y:/Macro/forestproductsdemand/rawdata/")
-print(load(file = "Paper and paperboard.rdata"))
-print(load(file = "GDP_Deflator_Exchange_Rate_Population.rdata"))
-EU = read.csv("EUCountries.csv", as.is=TRUE)
+print(load(file = "rawdata/Paper and paperboard.rdata"))
+print(load(file = "rawdata/sawnwood.RData"))
+print(load(file = "rawdata/GDP_Deflator_Exchange_Rate_Population.rdata"))
+EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 
 # Select products for EU27 Countries
 pp = subset(paperAndPaperboardProducts$entity, FAOST_CODE %in% EU$FAOST_CODE)
-
+swd = subset(sawnwood$entity, FAOST_CODE %in% EU$FAOST_CODE)
 
 ###########################
 ###########################
@@ -117,6 +117,35 @@ wb = ddply(wb, .(Country), mutate,
            GDPconstantUSD = GDPcurrentLCU / (DeflBase * ExchReur[Year==baseyear]))
 
 
+###########################
+###########################
+## Clean  FAOSTAT   data ##
+###########################
+###########################
+# Changes specific to paper products 
+# Rename
+pp$Item[pp$Item=="Paper and Paperboard"] = "Total Paper and Paperboard"
+pp$Item[pp$Item=="Other Paper+Paperboard"] = "Other Paper and Paperboard"
+pp$Item[pp$Item=="Printing+Writing Paper"] = "Printing and Writing Paper"
+
+# Change item to an ordered factor, same as in Table 3 of ChasAmil2000
+pp$Item = factor(pp$Item, ordered=TRUE,
+                 levels=c("Total Paper and Paperboard", "Newsprint",
+                          "Printing and Writing Paper", 
+                          "Other Paper and Paperboard"))
+
+# Changes specific to Sawnwood products 
+# Rename
+swd$Item[swd$Item=="Sawnwood"] = "Total Sawnwood"
+
+# Change item to an ordered factor
+swd$Item = factor(swd$Item, ordered=TRUE,
+                  levels=c("Total Sawnwood","Sawnwood (C)", "Sawnwood (NC)"))
+
+###############################################
+# General changes should be put in a function #
+###############################################
+
 ################################################
 # Calculate apparent consumption and net trade #
 ################################################
@@ -130,18 +159,6 @@ pp = mutate(pp, Consumption = Production + Import_Quantity - Export_Quantity,
 
 # Add GDPconstantUSD
 pp = merge(pp, wb[c("Year","Country","GDPconstantUSD")])
-
-# Rename "Total paper and paperboard" and "Printing and Writing Paper"
-pp$Item[pp$Item=="Paper and Paperboard"] = "Total Paper and Paperboard"
-pp$Item[pp$Item=="Other Paper+Paperboard"] = "Other Paper and Paperboard"
-pp$Item[pp$Item=="Printing+Writing Paper"] = "Printing and Writing Paper"
-
-# Change item to an ordered factor, same as in Table 3 of ChasAmil2000
-pp$Item = factor(pp$Item, ordered=TRUE,
-                 levels=c("Total Paper and Paperboard", "Newsprint",
-                          "Printing and Writing Paper", 
-                          "Other Paper and Paperboard"))
-
 
 #################################################
 # Calculate prices in constant USD of base year #
@@ -240,5 +257,5 @@ paperProducts = subset(pp,select=c(Year, Country, Item,
 paperProducts = arrange(paperProducts, Item, Country, Year)
 
 # Save to RDATA file
-save(paperProducts, ppagg, pptrade, wb, file="../enddata/EU27 paper products demand.rdata")
+save(paperProducts, ppagg, pptrade, wb, file="enddata/EU27 paper products demand.rdata")
 

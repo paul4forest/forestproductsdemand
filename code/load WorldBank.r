@@ -2,22 +2,21 @@
 #
 # Input: World bank website accessed with the R FAOSTAT package
 # Output: RDATA file containing GDP, exchange rate and deflator data
+#         saved in the /rawdata folder 
 #
 # Author: Paul Rougieux, European Forest Institute
 
-# File will be saved in the /rawdata folder 
-setwd("Y:/Macro/Demand Econometric Models/rawdata/")
-library(FAOSTAT)
+require(FAOSTAT)
 
-#########################################
-# See tests at the bottom of the script #
-#########################################
-
+###############################
+# See tests in test_rawdata.r #
+###############################
+# Test at the bottom of the script should be moved to test_rawdata.r
 
 ####################################
 # Download World Bank data for GDP #
 ####################################
-# See above for World bank metadata
+# See below for World bank metadata
 # A function to download aggregates from WDI is also available,
 # I haven't tried it yet as of 26 May 2013
 
@@ -62,7 +61,7 @@ stopifnot(nrow(population) == nrow(GDPDeflExchRPop))
 ################################
 #Save the Table containing GDP, Deflator and exchange rate
 save(GDPDeflExchRPop, 
-     file = "GDP_Deflator_Exchange_Rate_Population.RData")
+     file = "rawdata/GDP_Deflator_Exchange_Rate_Population.RData")
 
 #######################
 # World bank metadata #

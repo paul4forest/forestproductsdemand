@@ -29,10 +29,22 @@ The following R scripts are in the /code folder
 Tests
 ------
 A "safety belt" is located in the /tests directory. It uses the [testthat](http://journal.r-project.org/archive/2011-1/RJournal_2011-1_Wickham.pdf)(external link) package.
-You may run the following command to run all tests.
+Run the following command to run all tests.
 ```
-    test_dir("Y:/Macro/forestproductsdemand/tests/")
+    test_dir("tests")
 ```	
+For a little more verbose messages use the Tap reporter:
+```
+    test_dir("tests/", reporter="Tap")
+```
+Remark: Because I usually run all tests with the command test_dir("tests")
+the working directory is set to /tests. This is inconvenient in practice.
+Therefore I begin each test file by changing the working directory to the root project directory "..".
+
+Working directory
+-----------------
+[Hadley Wickham recommends](http://stat405.had.co.nz/lectures/05-shortcuts.pdf) not to setwd() in a script.   
+Currently, many scripts mentionned above start with a call to setwd() with an absolute path. This is a bad practice. Change ongoing.
 
 Version Control
 ---------------

@@ -12,6 +12,7 @@ Demand for paper and paperboard products in the European Union
 
 
 
+
 ### Load data
 FAOSTAT is the source of forest products data and
 World Bank is the source of GDP, deflator and exchange rate data.  
@@ -260,7 +261,7 @@ ggplot(data = pp4hist) + geom_histogram(aes(x = log(GDPconstantUSD)), binwidth =
 
 
 <a name="EstimationData"></a>
-Plot log of the estimation data ! add colors per year, then colors per net trade !
+Plot log of the estimation data 
 -------------------------------
 We will estimate the model
 $$ log(Consumption) = \beta_0 + \beta_1 log(GDP) + $$
@@ -289,6 +290,7 @@ points(log(Consumption) ~ log(GDPconstantUSD), data = subset(pp, Item == "Total 
 Sort countries by Net_Trade, then display a color for each country
 
 ```r
+d = data.frame(s = c(45, 43))
 ppc = subset(pp, Item == "Total Paper and Paperboard" & Year == 2012)
 ppc = ppc[order(ppc$Net_Trade), ]
 pp$Country = factor(pp$Country, levels = ppc$Country, ordered = TRUE)
@@ -297,6 +299,19 @@ p + geom_point(aes(alpha = Year, color = Country))
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
+
+Check the [ggplot shape parameter](http://sape.inf.usi.ch/quick-reference/ggplot2/shape) and the  `scale_shape_identity` to improve this graph with a "+" sign for positive net trade and a "o" sign for negative net trade. Plot only Printing and Writing Paper for this graph.
+
+```r
+
+p = ggplot(data = subset(pp, Item == "Printing and Writing Paper"), aes(x = log(GDPconstantUSD), 
+    y = log(Consumption))) + facet_wrap(~Item)
+p + scale_shape_identity() + geom_point(aes(color = Country, shape = 1 + 2 * (Net_Trade > 
+    0)))
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
 
 
@@ -315,7 +330,7 @@ points(log(Consumption) ~ log(Price), data = subset(pp, Item == "Total Paper and
     Year == 2012), col = "red")
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
 
 
 ### All products
@@ -325,6 +340,18 @@ p = ggplot(pp, aes(x = log(Price), y = log(Consumption), alpha = Year)) + facet_
 p + geom_point(aes(color = Country, alpha = Year))
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
 
-We can clearly see that countries that don't trade that much, have higher prices.
+Countries that trade less seem to have higher prices.
+
+Change point shapes with a "+" sign for positive net trade and a "o" sign for negative net trade. Show only Printing and writing paper for this graph.
+
+```r
+p = ggplot(data = subset(pp, Item == "Printing and Writing Paper"), aes(x = log(Price), 
+    y = log(Consumption))) + facet_wrap(~Item)
+p + scale_shape_identity() + geom_point(aes(color = Country, alpha = Year, shape = 1 + 
+    2 * (Net_Trade > 0)))
+```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
+

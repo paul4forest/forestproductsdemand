@@ -21,9 +21,10 @@ baseyear = 2010 # Define the baseyear for constant GDP calculations and price de
 ####################################
 # Load FAOSTAT and World Bank data #
 ####################################
-print(load(file = "rawdata/Paper and paperboard.rdata"))
-print(load(file = "rawdata/sawnwood.RData"))
-print(load(file = "rawdata/GDP_Deflator_Exchange_Rate_Population.rdata"))
+cat("Load raw data: ")
+cat(load(file = "rawdata/Paper and paperboard.rdata")," ")
+cat(load(file = "rawdata/sawnwood.RData"), " ")
+cat(load(file = "rawdata/GDP_Deflator_Exchange_Rate_Population.rdata"), "\n")
 EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 
 # Select products for EU27 Countries
@@ -35,7 +36,7 @@ swd = subset(sawnwood$entity, FAOST_CODE %in% EU$FAOST_CODE)
 ## Clean World Bank data ##
 ###########################
 ###########################
-# Prepare GDP data, calculate deflator and GDP un corrent USD
+# Prepare GDP data, calculate deflator and GDP in current USD
 #
 # Select EU27 countries and rename World Bank data frame to shorter name wb
 wb = subset(GDPDeflExchRPop, ISO2_WB_CODE %in% EU$ISO2_WB_CODE) 
@@ -122,8 +123,11 @@ wb = ddply(wb, .(Country), mutate,
 ## Clean  FAOSTAT   data ##
 ###########################
 ###########################
-# Changes specific to paper products 
-# Rename
+
+######################################
+# Changes specific to paper products #
+######################################
+# Rename item vectors
 pp$Item[pp$Item=="Paper and Paperboard"] = "Total Paper and Paperboard"
 pp$Item[pp$Item=="Other Paper+Paperboard"] = "Other Paper and Paperboard"
 pp$Item[pp$Item=="Printing+Writing Paper"] = "Printing and Writing Paper"
@@ -135,127 +139,159 @@ pp$Item = factor(pp$Item, ordered=TRUE,
                           "Other Paper and Paperboard"))
 
 # Changes specific to Sawnwood products 
-# Rename
+# Rename item vector
 swd$Item[swd$Item=="Sawnwood"] = "Total Sawnwood"
 
 # Change item to an ordered factor
 swd$Item = factor(swd$Item, ordered=TRUE,
                   levels=c("Total Sawnwood","Sawnwood (C)", "Sawnwood (NC)"))
 
-###############################################
-# General changes should be put in a function #
-###############################################
-
 ################################################
 # Calculate apparent consumption and net trade #
 ################################################
-# Change NA values to 0 - Not recommended 
-# But makes sence at least that import into Finland and Sweden are 0
-pp[is.na(pp)] = 0
+calculateConsumptionNetTrade = function(dtf){
+    # Change NA values to 0 - Not recommended 
+    # But makes sence at least that import into Finland and Sweden are 0
+    dtf[is.na(dtf)] = 0
+    
+    # Calculate apparent consumption and net trade
+    dtf = mutate(dtf, Consumption = Production + Import_Quantity - Export_Quantity, 
+                 Net_Trade =  Export_Quantity - Import_Quantity)
+}
 
-# Calculate apparent consumption and net trade
-pp = mutate(pp, Consumption = Production + Import_Quantity - Export_Quantity, 
-            Net_Trade =  Export_Quantity - Import_Quantity)
 
-# Add GDPconstantUSD
-pp = merge(pp, wb[c("Year","Country","GDPconstantUSD")])
+########################
+# Add GDP and Deflator #
+########################
+addGDPandDeflator = function(dtf){
+    # Add GDPconstantUSD
+    dtf = merge(dtf, wb[c("Year","Country","GDPconstantUSD")])
+    
+    # Add GDP deflator for the USA
+    dtf = merge(dtf, subset(US, select=c(Year,DeflUS)))
+}
 
 #################################################
 # Calculate prices in constant USD of base year #
 #################################################
-# Add GDP deflator for the USA
-pp = merge(pp, subset(US, select=c(Year,DeflUS)))
-
-# Prices
-# Ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000
-pp = mutate(pp, Price = (Import_Value + Export_Value)/
-                (Import_Quantity + Export_Quantity) / DeflUS *1000)
-
-# Import and export prices
-pp = mutate(pp, Import_Price = Import_Value / Import_Quantity / DeflUS*1000)
-pp = mutate(pp, Export_Price = Export_Value / Export_Quantity / DeflUS*1000)
-
+calculateConstantPrices = function(dtf){
+    # Ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000
+    dtf = mutate(dtf, Price = (Import_Value + Export_Value)/
+                     (Import_Quantity + Export_Quantity) / DeflUS *1000)
+    
+    # Import and export prices
+    dtf = mutate(dtf, Import_Price = Import_Value / Import_Quantity / DeflUS*1000)
+    dtf = mutate(dtf, Export_Price = Export_Value / Export_Quantity / DeflUS*1000)
+}
 
 #######################################################
 # Create a table in long format containing trade data # 
 #######################################################
-# Might want to use the reshape2 package
-pptrade = subset(pp, select=-c(Production, DeflUS, Price))
-pptrade = reshape(pptrade, 
-                  idvar=c("Country", "Year", "Item"), 
-                  varying=list(c("Import_Quantity", "Export_Quantity"),
-                               c("Import_Value", "Export_Value"),
-                               c("Import_Price", "Export_Price")), 
-                  v.names=c("Quantity", "Value", "Price_Trade"),
-                  timevar="Trade", times=c("Import", "Export"), 
-                  direction="long" )
-
-row.names(pptrade) = NULL
-
-# Check if information is kept
-stopifnot(2*nrow(pp) == nrow(pptrade))
-summary(pptrade$Quantity[pptrade$Trade=="Import"] - pp$Import_Quantity)
-summary(pptrade$Price_Trade[pptrade$Trade=="Import"] - pp$Import_Price)
-
+reshapeLongTradeTable = function(dtf){
+    # Might want to use the reshape2 package
+    dtftrade = subset(dtf, select=-c(Production, DeflUS, Price))
+    dtftrade = reshape(dtftrade, 
+                       idvar=c("Country", "Year", "Item"), 
+                       varying=list(c("Import_Quantity", "Export_Quantity"),
+                                    c("Import_Value", "Export_Value"),
+                                    c("Import_Price", "Export_Price")), 
+                       v.names=c("Quantity", "Value", "Price_Trade"),
+                       timevar="Trade", times=c("Import", "Export"), 
+                       direction="long" )
+    
+    row.names(dtftrade) = NULL
+    return(dtftrade)
+}
 
 
 ##################################################################
 # Create an aggregated table of consumption and price for Europe #
 ##################################################################
-ppagg = subset(pp, select=c("Item", "Year", "Consumption", "Production", "Net_Trade",
-                            "Import_Quantity", "Export_Quantity", 
-                            "Import_Value", "Export_Value"))
+aggregateConsPriceTable = function(dtf){
+    dtfagg = subset(dtf, select=c("Item", "Year", "Consumption", "Production", "Net_Trade",
+                                  "Import_Quantity", "Export_Quantity", 
+                                  "Import_Value", "Export_Value"))
+    
+    # Remove NA values not good, but do it here to calculate the aggregate
+    dtfagg[is.na(dtfagg)] = 0 
+    
+    
+    #  Sum volumes and values over the European Union
+    dtfagg = aggregate(dtfagg[c("Consumption", "Production", "Net_Trade",
+                                "Import_Quantity", "Export_Quantity", 
+                                "Import_Value", "Export_Value")], 
+                       dtfagg[c("Item", "Year")],sum)
+    
+    # Add GDP deflator for the USA
+    dtfagg = merge(dtfagg, subset(US, select=c(Year,DeflUS)))
+    
+    # Add GDP deflator for the EU
+    dtfagg = merge(dtfagg, 
+                   subset(GDPDeflExchRPop, Country=="European Union", 
+                          select=c(Year, Deflator)))
+    
+    
+    # Ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000
+    dtfagg = mutate(dtfagg, Price = (Import_Value + Export_Value)/
+                        (Import_Quantity + Export_Quantity) / DeflUS *1000)
+    #                PriceConstantEURO = 
+    
+    
+    elements = c("Consumption", "Production", "Net_Trade",
+                 "Import_Quantity", "Export_Quantity", 
+                 "Import_Value", "Export_Value","Price")
+    
+    dtfagg = reshape(dtfagg, 
+                     idvar=c("Year", "Item"), 
+                     varying=list(elements), 
+                     times=factor(elements, ordered=TRUE, levels=elements), 
+                     timevar="Element", v.names=c("Value"),
+                     direction="long" )
+    row.names(dtfagg) = NULL
+    dtfagg$DeflUS = NULL
+}
 
-# Remove NA values not good, but do it here to calculate the aggregate
-ppagg[is.na(ppagg)] = 0 
+#########################################################################
+# Keep Consumption, price and revenue, remove Production and trade data #
+#########################################################################
+removeProdTradeKeepConsPrice = function(dtf){
+    subset(dtf,select=c(Year, Country, Item, 
+                        Price, Consumption, Net_Trade,
+                        GDPconstantUSD,
+                        Import_Price, Export_Price))
+}
+ 
+###########################################
+# Call clean functions for paper products #
+###########################################
+pp = calculateConsumptionNetTrade(pp)
+pp = addGDPandDeflator(pp)
+pp = calculateConstantPrices(pp)
+# pp is now the most complete table
 
+# Tables with reshaped data or aggregated information
+pptrade = reshapeLongTradeTable(pp)
+ppagg = aggregateConsPriceTable(pp)
+paperProducts = removeProdTradeKeepConsPrice(pp)
+paperProducts = arrange(paperProducts, Item, Country, Year)
 
-#  Sum volumes and values over the European Union
-ppagg = aggregate(ppagg[c("Consumption", "Production", "Net_Trade",
-                         "Import_Quantity", "Export_Quantity", 
-                         "Import_Value", "Export_Value")], 
-                 ppagg[c("Item", "Year")],sum)
+##############################################
+# Call clean functions for Sawnwood products #
+##############################################
+swd = calculateConsumptionNetTrade(swd)
+swd = addGDPandDeflator(swd)
+swd = calculateConstantPrices(swd)
+# swd is now the most complete table
 
-# Add GDP deflator for the USA
-ppagg = merge(ppagg, subset(US, select=c(Year,DeflUS)))
-
-# Add GDP deflator for the EU
-ppagg = merge(ppagg, 
-              subset(GDPDeflExchRPop, Country=="European Union", 
-                     select=c(Year, Deflator)))
-
-
-# Ponderation of import and export prices as used in Chas-Amil and Buongiorno 2000
-ppagg = mutate(ppagg, Price = (Import_Value + Export_Value)/
-                   (Import_Quantity + Export_Quantity) / DeflUS *1000)
-#                PriceConstantEURO = 
-
-
-elements = c("Consumption", "Production", "Net_Trade",
-             "Import_Quantity", "Export_Quantity", 
-             "Import_Value", "Export_Value","Price")
-
-ppagg = reshape(ppagg, 
-                idvar=c("Year", "Item"), 
-                varying=list(elements), 
-                times=factor(elements, ordered=TRUE, levels=elements), 
-                timevar="Element", v.names=c("Value"),
-                direction="long" )
-row.names(ppagg) = NULL
-ppagg$DeflUS = NULL
+# Tables with reshaped data or aggregated information
+swdtrade = reshapeLongTradeTable(swd)
+swdagg = aggregateConsPriceTable(swd)
+sawnwood = removeProdTradeKeepConsPrice(swd)
+sawnwood = arrange(sawnwood, Item, Country, Year)
 
 ####################
 # Save to end data #
 ####################
-# Keep Consumption, price and revenue, remove Production and trade data 
-paperProducts = subset(pp,select=c(Year, Country, Item, 
-                                   Price, Consumption, Net_Trade,
-                                   GDPconstantUSD,
-                                   Import_Price, Export_Price))
-
-# Sort 
-paperProducts = arrange(paperProducts, Item, Country, Year)
-
-# Save to RDATA file
 save(paperProducts, ppagg, pptrade, wb, file="enddata/EU27 paper products demand.rdata")
 
+save(sawnwood, swdagg, swdtrade, wb, file="enddata/EU27 sawnwood demand.rdata")

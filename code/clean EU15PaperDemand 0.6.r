@@ -1,5 +1,7 @@
 # This script prepares data to reproduce the paper by Chas Amil and Buongiorno from
 # 2000 “The demand for paper and paperboard - Econometric model for the European Union”
+#
+# A newer version is located in clean.r
 # Cleaning has been made general so that it should be possible to modify the script 
 # to extend the time series or the number of countries included
 # 

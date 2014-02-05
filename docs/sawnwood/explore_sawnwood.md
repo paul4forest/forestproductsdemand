@@ -39,9 +39,9 @@ __In 2012, the overall EU consumption, production and trade in million Tons per 
 
 
 
+Consumption, production, trade and net trade of Sawnwood in the European Union
 
 ```r
-# Consumption, production, trade and net trade at the European Level
 ggplot(data = subset(swdagg, !Element %in% c("Import_Value", "Export_Value", "Price"))) + 
     geom_line(aes(x = Year, y = Value/1e+06, colour = Item), size = 1) + facet_wrap(~Element) + 
     ylab("Million metric Ton") + theme_bw()

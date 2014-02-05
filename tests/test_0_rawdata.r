@@ -8,7 +8,8 @@ require(plyr)
 # Load rawdata #
 ################
 # Because I usually run all tests with the command test_dir("tests")  
-# the working directory is set to /tests. This is inconvenient in practice.
+# the testthat library sets the working directory to /tests. 
+# This is inconvenient in practice.
 # Therefore I change the working directory to the root project directory ".."
 setwd("..")
 load(file = "rawdata/Paper and paperboard.rdata")
@@ -21,7 +22,7 @@ EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 #####################
 # Test raw FAO data #
 #####################
-context("In rawdata folder, test FAO data")
+context("In ./rawdata, test FAO data")
 
 test_that("There are 27 countries in the EU table", {
     expect_that(nrow(EU), equals(27)) 
@@ -51,7 +52,7 @@ test_that("EU production of 2 sawnwood products match total", {
 ############################
 # Test raw World Bank data #
 ############################
-context("In rawdata folder, test World Bank data")
+context("In ./rawdata, test World Bank data")
 
 # # Countries that don't have an exchange rate in 2005 # Should contain EURO area countries
 # unique(wb$Country[is.na(wb$ExchR) & wb$Year==2005])

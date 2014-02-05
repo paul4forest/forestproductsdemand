@@ -21,11 +21,10 @@ baseyear = 2010 # Define the baseyear for constant GDP calculations and price de
 ####################################
 # Load FAOSTAT and World Bank data #
 ####################################
-cat("Load raw data: ")
-cat(load(file = "rawdata/Paper and paperboard.rdata")," ")
-cat(load(file = "rawdata/sawnwood.RData"), " ")
+load("rawdata/Paper and paperboard.rdata")
+load("rawdata/sawnwood.RData")
 # cat(load(file = "rawdata/roundwood.RData"), " ")
-cat(load(file = "rawdata/GDP_Deflator_Exchange_Rate_Population.rdata"), "\n")
+load("rawdata/GDP_Deflator_Exchange_Rate_Population.rdata")
 EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 
 # Select products for EU27 Countries

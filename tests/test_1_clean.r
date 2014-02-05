@@ -8,7 +8,7 @@ setwd("..")
 source("code/clean.r")
 
 
-context("In clean.r")
+context("In .code/clean.r")
 
 test_that("Long trade table kept all information from the original table", {
     # Paper products

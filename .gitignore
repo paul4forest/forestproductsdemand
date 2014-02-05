@@ -1,3 +1,14 @@
 .Rproj.user
-.Rhistory
-.RData
+*.html
+*.log
+*.png
+*.pdf
+*.rdb
+*.rdx
+*.Rhistory
+*.RData
+*.RDATA
+*.rdata
+*.synctex.gz
+*.tex
+*.toc

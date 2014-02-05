@@ -145,7 +145,8 @@ hr {
 
 <p><strong>Data sources</strong>: FAOSTAT and World Bank downloaded with the FAOSTAT module<br/>
 <strong>Output</strong>: Graphs and table of estimated elasticities<br/>
-<strong>Author</strong>: Paul Rougieux, European Forest Institute  </p>
+<strong>Author</strong>: Paul Rougieux, European Forest Institute<br/>
+<a href="http://www.efi.int"><img src="http://www.efi.int/files/images/logos/efi_logo_rgb_small_siw.jpg" alt="efi_logo_rgb_small_siw.jpg : 17Kb" border="0" height="54" width="50"></a></p>
 
 <h2>Documents </h2>
 
@@ -188,50 +189,51 @@ Therefore I begin each test file by changing the working directory to the root p
 
 <h2>Working directory</h2>
 
-<p><a href="http://stat405.had.co.nz/lectures/05-shortcuts.pdf">Hadley Wickham recommends</a> not to setwd() in a script.<br/>
-Currently, many scripts mentionned above start with a call to setwd() with an absolute path. This is a bad practice. Change ongoing.</p>
+<p><a href="http://stat405.had.co.nz/lectures/05-shortcuts.pdf">Hadley Wickham recommends</a> not to setwd() in a script. Most scripts load from- or save data to- a path relative to the project path. By default, Knitr sets the working directory to the directory where the document is located. I prefer to change knitr&#39;s default directory to the project&#39;s root directory. It&#39;s possible thanks to an option added by <a href="https://github.com/yihui/knitr/issues/277">yihui</a>. For example if the document is localted in ./docs/explore/, I change all knitrs working directory with the option:</p>
+
+<pre><code>opts_knit$set(root.dir = &#39;../..&#39;) 
+</code></pre>
 
 <h2>Version Control</h2>
 
 <p>I&#39;m using GIT and I followed this advice to set it up:  <a href="https://help.github.com/articles/create-a-repo">create a repository</a>. FAOSTAT developper Michael Kao is also using git: <a href="https://github.com/mkao006/FAOSTATpackage">source code of the R FAOSTAT package</a>. Commands I&#39;ve used so far to upload content to <a href="https://github.com/paul4forest/forestproductsdemand">github.com/paul4forest/forestproductsdemand</a>:</p>
 
-<pre><code>git pull origin master
+<pre><code>git remote add origin https://github.com/paul4forest/forestproductsdemand
+# Creates a remote named &quot;origin&quot; pointing at your GitHub repository
+git pull origin master
 git add &lt;filename&gt;
 git commit -m &quot;Message that explains my changes to the files&quot;
 git push origin master
 </code></pre>
 
 <p>Alternatively &ldquo;git commit -a&rdquo;&ldquo; is a replacement for &quot;git add&rdquo;&ldquo; and &quot;git commit&rdquo;.<br/>
-More version control commands in <a href="http://paulremote.blogspot.fr/2013/10/git-commands.html">my blog</a></p>
+More version control commands in <a href="http://paulremote.blogspot.fr/2013/10/git-commands.html">my blog</a>
+<strong>Removing files</strong>: If you intend that your next commit should record all modifications of tracked files in the working tree and record all removals of files that have been removed from the working tree with rm (as opposed to git rm), use git <strong>commit -a</strong>, as it will automatically notice and record all removals.</p>
 
 <h1>Notes</h1>
 
 <p>Note to Paul: try an interactive map with <a href="http://rpubs.com/gallery/googleVis">GoogleVis</a>.</p>
 
-<h2>Comments by AL</h2>
+<h2>Comments </h2>
 
-<p>Change Prices in EUR as effect of EUR USD exchange rate mighjt be important after 2000</p>
+<p>by AL</p>
 
-<p>Add consumption and trade of pulp graphs</p>
+<ul>
+<li>Change Prices in EUR as effect of EUR USD exchange rate mighjt be important after 2000</li>
+<li>Add consumption and trade of pulp graphs</li>
+<li>Check impact of local price with respect to international price when estimating demand functions</li>
+</ul>
 
-<p>Ask Antonello about impact of local price with respect to international price
-when estimating demand functions</p>
+<p>by LH </p>
 
-<p>Ask Antonello to get at login for the Free Github account of the LEF</p>
-
-<p>Check EDX and coursera </p>
-
-<h2>Further comments by LH in the train to Lillehammer</h2>
-
-<p>Structural change will be different in
-  graffics paper: newsprint + printing &amp; writting paper
-  as in packaging paper for example.
-  Packacging is included under other paper and paper board</p>
-
-<p>When analysing demand for forest products 
-Deflate out GDP inpact as first start to analyse effects beyond the economic impacts</p>
-
-<p>Is sawwwod a substutue or a complement for other material?</p>
+<ul>
+<li>Structural change will be different in graffics paper:
+newsprint + printing &amp; writting paper as in packaging paper for example.
+Packacging is included under other paper and paper board
+When analysing demand for forest products
+Deflate out GDP inpact as first start to analyse effects beyond the economic impacts</li>
+<li>Is sawwwod a substitue or a complement for other material?</li>
+</ul>
 
 </body>
 

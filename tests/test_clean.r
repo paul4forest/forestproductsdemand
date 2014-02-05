@@ -21,3 +21,9 @@ test_that("Long trade table kept all information from the original table", {
     expect_that(swdtrade$Price_Trade[swdtrade$Trade=="Import"], equals(swd$Import_Price))
 })
 
+test_that("Aggregated tables kept information",{
+    expect_that(sum(ppagg$Value[ppagg$Element=="Consumption"]),
+                equals(sum(pp$Consumption)))
+    expect_that(sum(swdagg$Value[swdagg$Element=="Consumption"]),
+                equals(sum(swd$Consumption)))
+})

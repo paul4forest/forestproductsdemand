@@ -47,6 +47,20 @@ sawnwood = list(entity = rbind(sawnwoodC$entity,
                                    sawnwoodNC$aggregates, 
                                    sawnwoodTotal$aggregates))
 
+
+RoundwoodC = FAO.download(1862, 5516, 5616, 5622, 5916, 5922)
+RoundwoodNC = FAO.download(1863, 5516, 5616, 5622, 5916, 5922)
+RoundwoodTotal = FAO.download(1861, 5516, 5616, 5622, 5916, 5922)
+
+# Remeber to change capital R with small R 
+roundwood = list(entity = rbind(RoundwoodC$entity, 
+                               RoundwoodNC$entity,
+                               RoundwoodTotal$entity),
+                aggregates = rbind(RoundwoodC$aggregates, 
+                                   RoundwoodNC$aggregates, 
+                                   RoundwoodTotal$aggregates))
+
+
 # How much time does it take to load FAOSTAT data ?
 system.time(FAO.download(1876, 5510, 5610, 5622, 5910, 5922))
 
@@ -59,4 +73,7 @@ save(paperAndPaperboardProducts, countrycodes,
 
 save(sawnwood, countrycodes, 
      file="rawdata/sawnwood.RData")
+
+save(roundwood, countrycodes, 
+     file="rawdata/roundwood.Rdata")
 

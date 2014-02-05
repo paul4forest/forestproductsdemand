@@ -24,13 +24,14 @@ baseyear = 2010 # Define the baseyear for constant GDP calculations and price de
 cat("Load raw data: ")
 cat(load(file = "rawdata/Paper and paperboard.rdata")," ")
 cat(load(file = "rawdata/sawnwood.RData"), " ")
+# cat(load(file = "rawdata/roundwood.RData"), " ")
 cat(load(file = "rawdata/GDP_Deflator_Exchange_Rate_Population.rdata"), "\n")
 EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 
 # Select products for EU27 Countries
 pp = subset(paperAndPaperboardProducts$entity, FAOST_CODE %in% EU$FAOST_CODE)
 swd = subset(sawnwood$entity, FAOST_CODE %in% EU$FAOST_CODE)
-
+# rwd = subset(roundwood$entity, FAOST_CODE %in% EU$FAOST_CODE)
 ###########################
 ###########################
 ## Clean World Bank data ##
@@ -44,8 +45,8 @@ wb = subset(GDPDeflExchRPop, ISO2_WB_CODE %in% EU$ISO2_WB_CODE)
 # Rename Slovakia
 wb$Country[wb$Country=="Slovak Republic"] = "Slovakia"
 
-# Add local currency exchange rate to Euro 
-wb = merge(wb, subset(EU, select=c(ISO2_WB_CODE, ExchRLCUtoEuro) ))
+# Add local currency exchange rate to Euro and EU15 membership
+wb = merge(wb, subset(EU, select=c(ISO2_WB_CODE, ExchRLCUtoEuro, EU15) ))
 
 
 #####################################################################
@@ -124,27 +125,6 @@ wb = ddply(wb, .(Country), mutate,
 ###########################
 ###########################
 
-######################################
-# Changes specific to paper products #
-######################################
-# Rename item vectors
-pp$Item[pp$Item=="Paper and Paperboard"] = "Total Paper and Paperboard"
-pp$Item[pp$Item=="Other Paper+Paperboard"] = "Other Paper and Paperboard"
-pp$Item[pp$Item=="Printing+Writing Paper"] = "Printing and Writing Paper"
-
-# Change item to an ordered factor, same as in Table 3 of ChasAmil2000
-pp$Item = factor(pp$Item, ordered=TRUE,
-                 levels=c("Total Paper and Paperboard", "Newsprint",
-                          "Printing and Writing Paper", 
-                          "Other Paper and Paperboard"))
-
-# Changes specific to Sawnwood products 
-# Rename item vector
-swd$Item[swd$Item=="Sawnwood"] = "Total Sawnwood"
-
-# Change item to an ordered factor
-swd$Item = factor(swd$Item, ordered=TRUE,
-                  levels=c("Total Sawnwood","Sawnwood (C)", "Sawnwood (NC)"))
 
 ################################################
 # Calculate apparent consumption and net trade #
@@ -157,18 +137,20 @@ calculateConsumptionNetTrade = function(dtf){
     # Calculate apparent consumption and net trade
     dtf = mutate(dtf, Consumption = Production + Import_Quantity - Export_Quantity, 
                  Net_Trade =  Export_Quantity - Import_Quantity)
+    return(dtf)
 }
 
 
-########################
-# Add GDP and Deflator #
-########################
+###########################
+# Add GDP and US Deflator #
+###########################
 addGDPandDeflator = function(dtf){
     # Add GDPconstantUSD
     dtf = merge(dtf, wb[c("Year","Country","GDPconstantUSD")])
     
     # Add GDP deflator for the USA
     dtf = merge(dtf, subset(US, select=c(Year,DeflUS)))
+    return(dtf)
 }
 
 #################################################
@@ -182,6 +164,7 @@ calculateConstantPrices = function(dtf){
     # Import and export prices
     dtf = mutate(dtf, Import_Price = Import_Value / Import_Quantity / DeflUS*1000)
     dtf = mutate(dtf, Export_Price = Export_Value / Export_Quantity / DeflUS*1000)
+    return(dtf)
 }
 
 #######################################################
@@ -249,6 +232,7 @@ aggregateConsPriceTable = function(dtf){
                      direction="long" )
     row.names(dtfagg) = NULL
     dtfagg$DeflUS = NULL
+    return(dtfagg)
 }
 
 #########################################################################
@@ -261,9 +245,36 @@ removeProdTradeKeepConsPrice = function(dtf){
                         Import_Price, Export_Price))
 }
  
+
+######################################
+# Changes specific to paper products #
+######################################
+# Rename item vectors
+pp$Item[pp$Item=="Paper and Paperboard"] = "Total Paper and Paperboard"
+pp$Item[pp$Item=="Other Paper+Paperboard"] = "Other Paper and Paperboard"
+pp$Item[pp$Item=="Printing+Writing Paper"] = "Printing and Writing Paper"
+
+# Change item to an ordered factor, same as in Table 3 of ChasAmil2000
+pp$Item = factor(pp$Item, ordered=TRUE,
+                 levels=c("Total Paper and Paperboard", "Newsprint",
+                          "Printing and Writing Paper", 
+                          "Other Paper and Paperboard"))
+
+# Changes specific to Sawnwood products 
+# Rename item vector
+swd$Item[swd$Item=="Sawnwood"] = "Total Sawnwood"
+swd$Item[swd$Item=="Sawnwood (C)"] = "Sawnwood Coniferous"
+swd$Item[swd$Item=="Sawnwood (NC)"] = "Sawnwood Non Coniferous"
+
+# Change item to an ordered factor
+swd$Item = factor(swd$Item, ordered=TRUE,
+                  levels=c("Total Sawnwood","Sawnwood Coniferous", "Sawnwood Non Coniferous"))
+
+
 ###########################################
 # Call clean functions for paper products #
 ###########################################
+# See also specific changes above
 pp = calculateConsumptionNetTrade(pp)
 pp = addGDPandDeflator(pp)
 pp = calculateConstantPrices(pp)
@@ -278,10 +289,13 @@ paperProducts = arrange(paperProducts, Item, Country, Year)
 ##############################################
 # Call clean functions for Sawnwood products #
 ##############################################
+# See also specific changes above
 swd = calculateConsumptionNetTrade(swd)
 swd = addGDPandDeflator(swd)
 swd = calculateConstantPrices(swd)
 # swd is now the most complete table
+# Rename swd Coniferous and non coniferous
+unique(swd$Item)
 
 # Tables with reshaped data or aggregated information
 swdtrade = reshapeLongTradeTable(swd)
@@ -289,9 +303,28 @@ swdagg = aggregateConsPriceTable(swd)
 sawnwood = removeProdTradeKeepConsPrice(swd)
 sawnwood = arrange(sawnwood, Item, Country, Year)
 
+
+##############################################
+# Call clean functions for roundnwood products #
+##############################################
+# rwd = calculateConsumptionNetTrade(rwd)
+# rwd = addGDPandDeflator(rwd)
+# rwd = calculateConstantPrices(rwd)
+# # rwd is now the most complete table
+# 
+# # Tables with reshaped data or aggregated information
+# rwdtrade = reshapeLongTradeTable(rwd)
+# rwdagg = aggregateConsPriceTable(rwd)
+# roundwood = removeProdTradeKeepConsPrice(rwd)
+# roundwood = arrange(sawnwood, Item, Country, Year)
+
+
+
 ####################
 # Save to end data #
 ####################
 save(paperProducts, ppagg, pptrade, wb, file="enddata/EU27 paper products demand.rdata")
 
 save(sawnwood, swdagg, swdtrade, wb, file="enddata/EU27 sawnwood demand.rdata")
+
+# save(roundwood, rwdagg, rwdtrade, wb, file="endata/EU27 roundwood demand.Rdata")

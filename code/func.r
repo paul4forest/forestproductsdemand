@@ -3,7 +3,7 @@
 # Author: Paul Rougieux, European Forest Institute
 
 require(FAOSTAT)
-
+require(xtable)
 ############
 # Metadata #
 ############
@@ -51,4 +51,11 @@ FAO.download = function(item, elem1, elem2, elem3, elem4, elem5){
     return(FAO.lst)
 }
 
-
+#############################################
+# Functions to display data analysis in Rmd #
+#############################################
+# Print a summary table of estimation coefficients of a model
+printSummaryTable = function(model){
+    coefs = round(data.frame(t(summary(model)$coefficients[,1:2])),3)
+    print(xtable(coefs), type="html")
+}

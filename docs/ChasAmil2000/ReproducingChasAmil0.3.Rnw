@@ -184,7 +184,8 @@ dynModelCountry = function(dtf){
 x = ddply(tp, .(Country), dynModelCountry)
 
 
-# Reorder and rename columns for esthetical reasons
+# Reorder and rename columns 
+esthetical reasons
 x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
          "log.Consum_t_1.", "R_Squared")]
 names(x) = c("Country", "Y", "P", "Dt_1", "R2")

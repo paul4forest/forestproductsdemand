@@ -146,26 +146,32 @@ hr {
 <ul>
 <li>
 <a href="#toc_0">Documents </a>
+<ul>
+<li>
+<a href="#toc_1">Paper and Paperboard Products</a>
 </li>
 <li>
-<a href="#toc_1">Code </a>
-</li>
-<li>
-<a href="#toc_2">Tests</a>
-</li>
-<li>
-<a href="#toc_3">Working directory</a>
-</li>
-<li>
-<a href="#toc_4">Version Control</a>
+<a href="#toc_2">Sawnwood</a>
 </li>
 </ul>
 </li>
 <li>
-<a href="#toc_5">Notes</a>
-<ul>
+<a href="#toc_3">Code </a>
+</li>
 <li>
-<a href="#toc_6">Comments </a>
+<a href="#toc_4">Tests</a>
+</li>
+<li>
+<a href="#toc_5">Working directory</a>
+</li>
+<li>
+<a href="#toc_6">Version Control</a>
+</li>
+<li>
+<a href="#toc_7">Notes</a>
+</li>
+<li>
+<a href="#toc_8">Comments </a>
 </li>
 </ul>
 </div>
@@ -180,32 +186,41 @@ hr {
 
 <h2 id="toc_0">Documents </h2>
 
+<h3 id="toc_1">Paper and Paperboard Products</h3>
+
 <p>We started writting the program while reproducing estimates 
  of demand elasticities in a paper by Chas Amil and Buongiorno.
  This paper covered EU15 countries from 1969 to 1995.
- See our attempt at reproducing the same estimates in the folder: <strong>\Docs\ChasAmil2000</strong>  </p>
+ See our attempt at reproducing the same estimates in the folder: <strong>./docs/ChasAmil2000</strong>  </p>
 
 <p>We then extended the data coverage up to the most recent available Year (2012)
- and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. See  <a href="./docs/ExploreData/explore.md">explore.md</a> or <a href="./docs/ExploreData/explore.html">explore.html</a>   in the folder <strong>\Docs\ExploreData</strong>.</p>
+ and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. </p>
 
-<h2 id="toc_1">Code </h2>
+<p>You will find descriptive statistics for paper products demand in the EU under the folder <strong>./docs/paper_products</strong>, in <a href="./docs/paper_products/explore.md">explore.md</a> or <a href="./docs/paper_products/explore.html">explore.html</a> </p>
+
+<h3 id="toc_2">Sawnwood</h3>
+
+<p>You will find descriptive statistics for sawnwood demand in the European Union under <a href="./docs/sawnwood/explore_sawnwood.md">explore_sawnwood.md</a> or <a href="./docs/sawnwood/explore_sawnwood.html">explore_sawnwood.html</a></p>
+
+<h2 id="toc_3">Code </h2>
 
 <p>The following R scripts are in the /code folder</p>
 
 <ul>
-<li>load FAOSTAT.r</li>
+<li>load</li>
 <li>load WorldBank.r</li>
 <li>clean EU15PaperDemand 0.6.r to prepare data for the ChasAmil 2000 estimates</li>
 <li>clean.r cleans world bank and FAOSTAT data to extract consumption and prices</li>
 <li>And estimation scripts</li>
 </ul>
 
-<h2 id="toc_2">Tests</h2>
+<h2 id="toc_4">Tests</h2>
 
 <p>A &ldquo;safety belt&rdquo; is located in the /tests directory. It uses the <a href="http://journal.r-project.org/archive/2011-1/RJournal_2011-1_Wickham.pdf">testthat</a>(external link) package.
 Run the following command to run all tests.</p>
 
-<pre><code>    test_dir(&quot;tests&quot;)
+<pre><code>    library(testthat)
+    test_dir(&quot;tests&quot;)
 </code></pre>
 
 <p>For a little more verbose messages use the Tap reporter:</p>
@@ -217,14 +232,14 @@ Run the following command to run all tests.</p>
 the working directory is set to /tests. This is inconvenient in practice.
 Therefore I begin each test file by changing the working directory to the root project directory &ldquo;..&rdquo;.</p>
 
-<h2 id="toc_3">Working directory</h2>
+<h2 id="toc_5">Working directory</h2>
 
 <p><a href="http://stat405.had.co.nz/lectures/05-shortcuts.pdf">Hadley Wickham recommends</a> not to setwd() in a script. Most scripts load from- or save data to- a path relative to the project path. By default, Knitr sets the working directory to the directory where the document is located. I prefer to change knitr&#39;s default directory to the project&#39;s root directory. It&#39;s possible thanks to an option added by <a href="https://github.com/yihui/knitr/issues/277">yihui</a>. For example if the document is localted in ./docs/explore/, I change all knitrs working directory with the option:</p>
 
 <pre><code>opts_knit$set(root.dir = &#39;../..&#39;) 
 </code></pre>
 
-<h2 id="toc_4">Version Control</h2>
+<h2 id="toc_6">Version Control</h2>
 
 <p>I&#39;m using GIT and I followed this advice to set it up:  <a href="https://help.github.com/articles/create-a-repo">create a repository</a>. FAOSTAT developper Michael Kao is also using git: <a href="https://github.com/mkao006/FAOSTATpackage">source code of the R FAOSTAT package</a>. Commands I&#39;ve used so far to upload content to <a href="https://github.com/paul4forest/forestproductsdemand">github.com/paul4forest/forestproductsdemand</a>:</p>
 
@@ -240,11 +255,11 @@ git push origin master
 More version control commands in <a href="http://paulremote.blogspot.fr/2013/10/git-commands.html">my blog</a>
 <strong>Removing files</strong>: If you intend that your next commit should record all modifications of tracked files in the working tree and record all removals of files that have been removed from the working tree with rm (as opposed to git rm), use git <strong>commit -a</strong>, as it will automatically notice and record all removals.</p>
 
-<h1 id="toc_5">Notes</h1>
+<h2 id="toc_7">Notes</h2>
 
 <p>Note to Paul: try an interactive map with <a href="http://rpubs.com/gallery/googleVis">GoogleVis</a>.</p>
 
-<h2 id="toc_6">Comments </h2>
+<h2 id="toc_8">Comments </h2>
 
 <p>by AL</p>
 

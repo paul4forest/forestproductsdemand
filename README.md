@@ -8,19 +8,26 @@ This R program estimates demand elasticites for forest products with respect to 
 
 Documents 
 ---------
+### Paper and Paperboard Products
 We started writting the program while reproducing estimates 
  of demand elasticities in a paper by Chas Amil and Buongiorno.
  This paper covered EU15 countries from 1969 to 1995.
- See our attempt at reproducing the same estimates in the folder: **\Docs\ChasAmil2000**  
+ See our attempt at reproducing the same estimates in the folder: **./docs/ChasAmil2000**  
 
 
 We then extended the data coverage up to the most recent available Year (2012)
- and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. See  [explore.md](./docs/ExploreData/explore.md) or [explore.html](./docs/ExploreData/explore.html)   in the folder **\Docs\ExploreData**.
+ and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. 
+ 
+You will find descriptive statistics for paper products demand in the EU under the folder **./docs/paper_products**, in [explore.md](./docs/paper_products/explore.md) or [explore.html](./docs/paper_products/explore.html) 
+
+### Sawnwood
+You will find descriptive statistics for sawnwood demand in the European Union under [explore_sawnwood.md](./docs/sawnwood/explore_sawnwood.md) or [explore_sawnwood.html](./docs/sawnwood/explore_sawnwood.html)
+
 
 Code 
 ----
 The following R scripts are in the /code folder
-* load FAOSTAT.r
+* load
 * load WorldBank.r
 * clean EU15PaperDemand 0.6.r to prepare data for the ChasAmil 2000 estimates
 * clean.r cleans world bank and FAOSTAT data to extract consumption and prices
@@ -31,6 +38,7 @@ Tests
 A "safety belt" is located in the /tests directory. It uses the [testthat](http://journal.r-project.org/archive/2011-1/RJournal_2011-1_Wickham.pdf)(external link) package.
 Run the following command to run all tests.
 ```
+    library(testthat)
     test_dir("tests")
 ```	
 For a little more verbose messages use the Tap reporter:
@@ -66,7 +74,7 @@ More version control commands in [my blog](http://paulremote.blogspot.fr/2013/10
 __Removing files__: If you intend that your next commit should record all modifications of tracked files in the working tree and record all removals of files that have been removed from the working tree with rm (as opposed to git rm), use git __commit -a__, as it will automatically notice and record all removals.
 
 Notes
-=====
+-----
 Note to Paul: try an interactive map with [GoogleVis](http://rpubs.com/gallery/googleVis).
 
 Comments 

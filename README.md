@@ -4,7 +4,7 @@ This R program estimates demand elasticites for forest products with respect to 
 **Data sources**: FAOSTAT and World Bank downloaded with the FAOSTAT module  
 **Output**: Graphs and table of estimated elasticities   
 **Author**: Paul Rougieux, European Forest Institute  
-<a href="http://www.efi.int"><img src="http://www.efi.int/files/images/logos/efi_logo_rgb_small_siw.jpg" alt="efi_logo_rgb_small_siw.jpg : 17Kb" border="0" height="54" width="50"></a>
+<a href="http://www.efi.int"><img src="docs/efi/efi_logo_rgb_small_siw.jpg" alt="efi_logo_rgb_small_siw.jpg : 17Kb" border="0" height="54" width="50"></a>
 
 Documents 
 ---------

@@ -18,13 +18,13 @@ source("code/func.r")
 # Download production and trade data for further analysis in other R scripts #
 ##############################################################################
 # Product codes are from the forestry metatables, visible in the list below
-forestrymetatable
+FAO$metatable
 
 # Paper and paperboard 
-newsprint = FAO.download(1671, 5510, 5610, 5622, 5910, 5922)
-printingAndWritingPaper = FAO.download(1674, 5510, 5610, 5622, 5910, 5922)
-otherPaperAndPaperboard = FAO.download(1675, 5510, 5610, 5622, 5910, 5922)
-totalPaperAndPaperboard = FAO.download(1876, 5510, 5610, 5622, 5910, 5922)
+newsprint = FAO$download(1671, 5510, 5610, 5622, 5910, 5922)
+printingAndWritingPaper = FAO$download(1674, 5510, 5610, 5622, 5910, 5922)
+otherPaperAndPaperboard = FAO$download(1675, 5510, 5610, 5622, 5910, 5922)
+totalPaperAndPaperboard = FAO$download(1876, 5510, 5610, 5622, 5910, 5922)
 
 # Aggregate all in one table, it's practical
 paperAndPaperboardProducts = list(entity=rbind(newsprint$entity,
@@ -37,9 +37,9 @@ paperAndPaperboardProducts = list(entity=rbind(newsprint$entity,
                                                    totalPaperAndPaperboard$aggregates))
 
 # Sawnwood
-sawnwoodC = FAO.download(1632, 5516, 5616, 5622, 5916, 5922)
-sawnwoodNC = FAO.download(1633, 5516, 5616, 5622, 5916, 5922)
-sawnwoodTotal = FAO.download(1872, 5516, 5616, 5622, 5916, 5922)
+sawnwoodC = FAO$download(1632, 5516, 5616, 5622, 5916, 5922)
+sawnwoodNC = FAO$download(1633, 5516, 5616, 5622, 5916, 5922)
+sawnwoodTotal = FAO$download(1872, 5516, 5616, 5622, 5916, 5922)
 sawnwood = list(entity = rbind(sawnwoodC$entity, 
                                sawnwoodNC$entity,
                                sawnwoodTotal$entity),
@@ -48,9 +48,9 @@ sawnwood = list(entity = rbind(sawnwoodC$entity,
                                    sawnwoodTotal$aggregates))
 
 
-RoundwoodC = FAO.download(1862, 5516, 5616, 5622, 5916, 5922)
-RoundwoodNC = FAO.download(1863, 5516, 5616, 5622, 5916, 5922)
-RoundwoodTotal = FAO.download(1861, 5516, 5616, 5622, 5916, 5922)
+RoundwoodC = FAO$download(1862, 5516, 5616, 5622, 5916, 5922)
+RoundwoodNC = FAO$download(1863, 5516, 5616, 5622, 5916, 5922)
+RoundwoodTotal = FAO$download(1861, 5516, 5616, 5622, 5916, 5922)
 
 # Remeber to change capital R with small R 
 roundwood = list(entity = rbind(RoundwoodC$entity, 
@@ -62,7 +62,7 @@ roundwood = list(entity = rbind(RoundwoodC$entity,
 
 
 # How much time does it take to load FAOSTAT data ?
-system.time(FAO.download(1876, 5510, 5610, 5622, 5910, 5922))
+system.time(FAO$download(1876, 5510, 5610, 5622, 5910, 5922))
 
 
 ################################

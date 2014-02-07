@@ -76,6 +76,7 @@ __Removing files__: If you intend that your next commit should record all modifi
 Notes
 -----
 Note to Paul: try an interactive map with [GoogleVis](http://rpubs.com/gallery/googleVis).
+This has been tried in the docs/Paper_products folder.
 
 Comments 
 ----------

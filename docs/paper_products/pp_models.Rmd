@@ -1,2 +1,145 @@
 Paper Product Consumption models
 ========================================================
+
+```{r setup, include=FALSE, cache=FALSE}
+library(ggplot2)
+library(plm)
+library(plyr)
+library(reshape2)
+opts_knit$set(root.dir = '../..') # Change to project root directory
+#opts_chunk$set(cache=TRUE) # Set global chunk options
+options(width=80)
+```
+
+
+Data
+----
+### Load 
+FAOSTAT is the source of forest products data and
+World Bank is the source of GDP, deflator and exchange rate data.  
+```{r load, results='show', warning=FALSE, message=FALSE, cache=FALSE}
+source("code/func.r")
+print(load("enddata/EU27 paper products demand.rdata"))
+pp <- paperProducts # Give a shorter name to the data frame
+EU15 <- unique(wb$Country[wb$EU15==1])
+```
+
+### Prepare data
+```{r prepare}
+# Create a column consumption at year t-1
+pp <- ddply(pp, .(Country,Item), mutate, 
+           Consum_t_1 = c(NA,Consumption[-length(Consumption)]))
+
+# Select same data as in the chasamil paper
+chasamil <- subset(pp, Year>=1969&Year<=1992&Country%in%EU15 & 
+                      Item=="Printing and Writing Paper", select=-Item)
+
+```
+Le panel est il cylindré?
+
+OLS by country
+--------------
+The Worldbank databank doesn't contain a deflator for Ireland over the time period of interest. Therefore we couldn't calculate a GDP in constant USD for Ireland.
+
+### Serial temporal autocorrelation on one country
+```{r}
+# Change to a time series
+consfr <- subset(chasamil,Country=="France")
+consfr.ts <- ts(consfr$Consumption, start=min(consfr$Year))
+plot(consfr.ts)
+acf(consfr.ts,lag.max=100)
+# numerical values of this autocorrelation function
+a <- acf(consfr.ts,lag.max=100,plot=FALSE)
+class(a)
+
+
+# Autocorrelation coefficients to be applied on all countries
+autocorr <- function(dtf){
+    cons.ts <- ts(dtf$Consumption, start=min(dtf$Year))
+    return(acf(cons.ts,lag.max=100,plot=FALSE)$acf)
+}
+a = ddply(chasamil, .(Country), autocorr)
+autocorrTable <- melt(a, id.vars = c("Country"))
+ggplot(autocorrTable) + aes(x=variable, y=value) + geom_bar() + facet_wrap(~Country)
+```
+
+
+### For all countries in the dataset
+```{r }
+#Remove Ireland because it doesn't have GDPConstantUSD Data
+chasamil <- subset(chasamil, Country!="Ireland")
+# Remove 1969 for Germany because Germany doesn't have GDP for that year
+chasamil <- subset(chasamil, !(Country=="Germany"&Year==1969))
+
+# A function that applies the dynamic model to a country 
+dynModelCountry = function(dtf){
+  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
+           data=dtf)
+  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
+  coefs$Country = unique(dtf$Country)
+  if (nrow(coefs)==2){
+    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
+  }
+  return(coefs)
+}
+
+# Test the model for one country
+dynModelCountry(subset(chasamil,Country=="France"))
+
+# # Apply the dynamic model to each and all countries
+x = ddply(chasamil, .(Country), dynModelCountry)
+
+# Reorder and rename columns for esthetical reasons
+x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
+         "log.Consum_t_1.", "R_Squared")]
+names(x) = c("Country", "Y", "P", "Dt_1", "R2")
+x$Country[is.na(x$R2)] = ""
+x[,-1] = round(x[,-1],2)
+x$Y[is.na(x$R2)] = paste("(", x$Y[is.na(x$R2)], ")", sep="")
+x$P[is.na(x$R2)] = paste("(", x$P[is.na(x$R2)], ")", sep="")
+x$Dt_1[is.na(x$R2)] = paste("(", x$Dt_1[is.na(x$R2)], ")", sep="")
+
+# Print table to html
+print(xtable(x, caption="Demand equations for total paper and paperboard by country", 
+             label="DemandByCountry"),  type = "html")
+
+```
+
+On the subject of Cochrane Orcutt method, [John Fox wrote](https://stat.ethz.ch/pipermail/r-help/2002-January/017774.html): "I'm not sure why you'd want to use these methods, other than for 
+historical reasons." And he gave a function cochrane.orcutt.lm which takes a linear-model object as an input.
+
+
+Panel data models
+-----------------
+Over the 1960 - 1992 estimation period.
+```{r}
+
+# Set data as panel data
+pchasamil <- plm.data(chasamil, index=c("Country","Year"))
+```
+
+### Pooled OLS
+```{r, results='asis'}
+pooling <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
+               data=pchasamil, model= "pooling")
+printSummaryTable(pooling)
+```
+```{r}
+summary(pooling)
+```
+
+### Fixed effects or within estimator
+```{r, results='asis'}
+fixed <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
+               data=pchasamil, model= "within")
+printSummaryTable(fixed)
+```
+
+### Random effects estimator
+```{r, results='asis'}
+random <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
+               data=pchasamil, model= "random")
+printSummaryTable(random)
+```
+The estimation of the random effect model tells me that there is an Error in swar(object, data, effect) : "the estimated variance of the individual effect is negative".
+

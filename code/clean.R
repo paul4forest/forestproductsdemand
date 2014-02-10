@@ -170,7 +170,7 @@ calculateConstantPrices = function(dtf){
 # Create a table in long format containing trade data # 
 #######################################################
 reshapeLongTradeTable = function(dtf){
-    # Might want to use the reshape2 package
+    # Might want to use the reshape2 package.
     dtftrade = subset(dtf, select=-c(Production, DeflUS, Price))
     dtftrade = reshape(dtftrade, 
                        idvar=c("Country", "Year", "Item"), 

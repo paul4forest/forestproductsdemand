@@ -17,8 +17,12 @@ source("code/func.r")
 ##############################################################################
 # Download production and trade data for further analysis in other R scripts #
 ##############################################################################
-# Product codes are from the forestry metatables, visible in the list below
-FAO$metatable
+# Production and trade volumes in m3 or tonnes are from the element table:
+FAO$elementTable 
+
+# Product codes are from the forestry metatables:
+FAO$itemTable 
+FAO$itemAggTable 
 
 # Paper and paperboard 
 newsprint = FAO$download(1671, 5510, 5610, 5622, 5910, 5922)
@@ -48,17 +52,16 @@ sawnwood = list(entity = rbind(sawnwoodC$entity,
                                    sawnwoodTotal$aggregates))
 
 
-RoundwoodC = FAO$download(1862, 5516, 5616, 5622, 5916, 5922)
-RoundwoodNC = FAO$download(1863, 5516, 5616, 5622, 5916, 5922)
-RoundwoodTotal = FAO$download(1861, 5516, 5616, 5622, 5916, 5922)
+roundwoodC = FAO$download(1862, 5516, 5616, 5622, 5916, 5922)
+roundwoodNC = FAO$download(1863, 5516, 5616, 5622, 5916, 5922)
+roundwoodTotal = FAO$download(1861, 5516, 5616, 5622, 5916, 5922)
 
-# Remeber to change capital R with small R 
-roundwood = list(entity = rbind(RoundwoodC$entity, 
-                               RoundwoodNC$entity,
-                               RoundwoodTotal$entity),
-                aggregates = rbind(RoundwoodC$aggregates, 
-                                   RoundwoodNC$aggregates, 
-                                   RoundwoodTotal$aggregates))
+roundwood = list(entity = rbind(roundwoodC$entity, 
+                               roundwoodNC$entity,
+                               roundwoodTotal$entity),
+                aggregates = rbind(roundwoodC$aggregates, 
+                                   roundwoodNC$aggregates, 
+                                   roundwoodTotal$aggregates))
 
 
 # How much time does it take to load FAOSTAT data ?
@@ -68,12 +71,9 @@ system.time(FAO$download(1876, 5510, 5610, 5622, 5910, 5922))
 ################################
 # Save objects in R data files #
 ################################
-save(paperAndPaperboardProducts, countrycodes,
-     file = "rawdata/Paper and paperboard.RData")
+save(paperAndPaperboardProducts, file = "rawdata/Paper and paperboard.RData")
 
-save(sawnwood, countrycodes, 
-     file="rawdata/sawnwood.RData")
+save(sawnwood, file="rawdata/sawnwood.RData")
 
-save(roundwood, countrycodes, 
-     file="rawdata/roundwood.Rdata")
+save(roundwood, file="rawdata/roundwood.Rdata")
 

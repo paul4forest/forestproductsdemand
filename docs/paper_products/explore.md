@@ -1,16 +1,5 @@
 Demand for paper and paperboard products in the European Union
 ========================================================
-* [Overview of EU Consumption, Production and Trade](#CPT)
-* [Consumption at the country level](#Consumption)
- * [Total consumption by Country](#TCbyCountry)
- * [Consumption of Graphics paper and other paper by Country](#CGPOpapbyCountry)
- * [Consumption and net trade by Country](#CNTbyCountry)
-* [GDP by Country](#GDPbyCountry)
-* [Prices](#Prices)
-* [Distribution of the estimation data for 4 important years](#Distribution)
-* [Plot log of the estimation data](#EstimationData)
-* [Panel data models](#panelModel)
-
 
 
 
@@ -29,7 +18,7 @@ print(load("enddata/EU27 paper products demand.rdata"))
 ```
 
 ```r
-pp = paperProducts  # Give a shorter name to the data frame
+pp = paperProducts # Give a shorter name to the data frame
 ```
 
 
@@ -53,12 +42,17 @@ __In 2012, the overall EU consumption, production and trade in million Tons per 
 
 ```r
 # Consumption, production, trade and net trade at the European Level
-ggplot(data = subset(ppagg, !Element %in% c("Import_Value", "Export_Value", "Price"))) + 
-    geom_line(aes(x = Year, y = Value/1e+06, colour = Item), size = 1) + facet_wrap(~Element) + 
+ggplot(data=subset(ppagg, !Element%in%c("Import_Value", "Export_Value","Price"))) +  
+    geom_line(aes(x=Year, y=Value/1e6, colour=Item),size=1) +
+    facet_wrap(~Element) +
     ylab("Million metric Ton") + theme_bw()
 ```
 
 ![plot of chunk consumptionTotalEU](figure/consumptionTotalEU.png) 
+
+```r
+ 
+```
 
 Net trade is slightly in favor of exports for most products except for newsprint. From bilateral trade statistics (not shown here), we know that most of the trade is happening inside the European Union.
 
@@ -71,9 +65,11 @@ Consumption at the country level
 Apparent consumption of Total paper and paperboard by country 
 
 ```r
-ggplot(data = subset(pp, Item == "Total Paper and Paperboard")) + geom_line(aes(x = Year, 
-    y = Consumption/1e+06, colour = Item), size = 1) + facet_wrap(~Country, scales = "free_y") + 
-    xlab("Year") + ylab("Million metric Ton") + theme_bw() + theme(legend.position = "bottom")
+ggplot(data=subset(pp, Item=="Total Paper and Paperboard"))+
+    geom_line(aes(x=Year, y=Consumption/1e+06, colour=Item), size=1) + 
+    facet_wrap(~Country, scales = "free_y") +
+    xlab("Year") + ylab("Million metric Ton") + 
+    theme_bw() +  theme(legend.position="bottom")
 ```
 
 ![plot of chunk consumptionbyCountry](figure/consumptionbyCountry.png) 
@@ -85,36 +81,64 @@ The largest consumers of paper and paperboard products are France, Germany, Ital
 
 ### Apparent consumption of graphics paper and other paper and paperboard by country 
 
-
 ```r
 # Create a new table with graphics papers following Lauri's comments
-ppgraph = subset(pp, Item %in% c("Newsprint", "Printing and Writing Paper"))
-ppgraph = aggregate(ppgraph[c("Consumption", "Net_Trade")], ppgraph[c("Year", "Country")], 
-    sum)
+ppgraph = subset(pp, Item %in% c("Newsprint","Printing and Writing Paper"))
+ppgraph = aggregate(ppgraph[c("Consumption", "Net_Trade")],
+                     ppgraph[c("Year", "Country")], sum)
 ppgraph$Item = "Graphics Paper"
-ppgraph = rbind(ppgraph, subset(pp, Item == "Other Paper and Paperboard", c(Year, 
-    Country, Item, Consumption, Net_Trade)))
+ppgraph = rbind(ppgraph, 
+                subset(pp, Item == "Other Paper and Paperboard", 
+                       c(Year, Country, Item, Consumption, Net_Trade)))
 
-ggplot(data = ppgraph) + geom_line(aes(x = Year, y = Consumption/1e+06, colour = Item), 
-    size = 1) + facet_wrap(~Country, scales = "free_y") + xlab("Year") + ylab("Million metric Ton") + 
-    # scale_colour_manual(values = c('Blue', 'Green')) +
-theme_bw() + theme(legend.position = "bottom")
+ggplot(data=ppgraph)+
+    geom_line(aes(x=Year, y=Consumption/1e+06, colour=Item), size=1) + 
+    facet_wrap(~Country, scales = "free_y") +
+    xlab("Year") + ylab("Million metric Ton") + 
+# scale_colour_manual(values = c("Blue", "Green")) +
+    theme_bw() +  theme(legend.position="bottom") 
 ```
 
 ![plot of chunk graphAndOtherconsumptionbyCountry](figure/graphAndOtherconsumptionbyCountry.png) 
 
 
-<a name="CNTbyCountry"></a>
+### Heat map of consumption per capita
+Consumption of total paper and paperboard in $$m^3$$ per habitant.
 
+```r
+# add population data
+pp = merge(pp, wb[c("Country","Population")])
+ggplot(data=subset(pp, Item=="Total Paper and Paperboard"), aes(Year, Country)) +
+    geom_tile(aes(fill = 1000*Consumption/Population), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue")
+```
+
+![plot of chunk heatmap](figure/heatmap1.png) 
+
+```r
+
+ggplot(data=pp, aes(Year, Country)) +
+    geom_tile(aes(fill = 1000*Consumption/Population), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue") + facet_wrap(~Item)
+```
+
+![plot of chunk heatmap](figure/heatmap2.png) 
+
+
+
+<a name="CNTbyCountry"></a>
 ### Consumption and Net Trade by Country
 Apparent consumption and Net Trade of Total paper and paperboard by country 
 
 ```r
-ggplot(data = subset(pp, Item == "Total Paper and Paperboard")) + geom_line(aes(x = Year, 
-    y = Consumption/1e+06, colour = Item, linetype = "Consumption"), size = 1) + 
-    geom_line(aes(x = Year, y = Net_Trade/1e+06, colour = Item, linetype = "Net trade"), 
-        size = 1) + facet_wrap(~Country, scales = "free_y") + xlab("Year") + ylab("Million metric Ton") + 
-    theme_bw() + theme(legend.position = "bottom")
+ggplot(data=subset(pp, Item=="Total Paper and Paperboard"))+
+    geom_line(aes(x=Year, y=Consumption/1e+06, colour=Item, linetype = "Consumption"), 
+              size=1) + 
+    geom_line(aes(x=Year, y=Net_Trade/1e+06, colour=Item, linetype = "Net trade"),
+              size=1) + 
+    facet_wrap(~Country, scales = "free_y") +
+    xlab("Year") + ylab("Million metric Ton") + 
+    theme_bw() +  theme(legend.position="bottom")
 ```
 
 ![plot of chunk consumptionNetTradebyCountry](figure/consumptionNetTradebyCountry.png) 
@@ -127,9 +151,9 @@ Large producing countries such as Finland and Sweden produce over 10 million ton
 
 ```r
 # 1 plot per country
-ggplot(data = wb, aes(x = Year, y = GDPconstantUSD/1e+09)) + geom_line(size = 1) + 
-    xlab("Years") + ylab("GDP (constant) in 2010 Billion USD ") + theme_bw() + theme(legend.position = "none") + 
-    facet_wrap(~Country, scales = "free_y")
+ggplot(data=wb, aes(x=Year, y=GDPconstantUSD/1e9)) +  
+    geom_line(size=1) + xlab("Years") + ylab("GDP (constant) in 2010 Billion USD ") +
+    theme_bw() + theme(legend.position= "none") + facet_wrap(~Country, scales = "free_y")
 ```
 
 ![plot of chunk GDPbyCountry](figure/GDPbyCountry.png) 
@@ -144,8 +168,9 @@ Prices of paper and paperboard
 Average trade price of paper products in the European Union
 
 ```r
-ggplot(data = subset(ppagg, Element == "Price")) + geom_line(aes(x = Year, y = Value, 
-    color = Item)) + ylab("Price in (2010) constant USD /Metric Ton")
+ggplot(data=subset(ppagg, Element=="Price")) +
+    geom_line(aes(x=Year, y=Value, color=Item)) +
+    ylab("Price in (2010) constant USD /Metric Ton")
 ```
 
 ![plot of chunk priceEU](figure/priceEU.png) 
@@ -161,9 +186,9 @@ Countries with a particularly high price were removed from the set.
 
 ```r
 library(scales)
-ggplot(data = subset(pp, !Country %in% c("Slovakia", "Malta"))) + geom_line(aes(x = Year, 
-    y = Price, color = Item)) + facet_wrap(~Country) + ylab("Price in (2010) constant USD /m3") + 
-    scale_y_continuous(labels = dollar)
+ggplot(data=subset(pp, !Country%in%c("Slovakia", "Malta"))) +
+    geom_line(aes(x=Year, y=Price, color=Item))  + facet_wrap( ~ Country) + 
+    ylab("Price in (2010) constant USD /m3") + scale_y_continuous(labels = dollar)
 ```
 
 ![plot of chunk pricesByCountry](figure/pricesByCountry.png) 
@@ -172,8 +197,10 @@ ggplot(data = subset(pp, !Country %in% c("Slovakia", "Malta"))) + geom_line(aes(
 ### Trade prices by Country
 
 ```r
-ggplot(data = subset(pptrade, !Country %in% c("Slovakia", "Malta"))) + geom_line(aes(x = Year, 
-    y = Price_Trade, color = Item, linetype = Trade)) + facet_wrap(~Country) + ylab("Price in (2010) constant USD /m3")
+ggplot(data=subset(pptrade, !Country%in%c("Slovakia", "Malta"))) +
+    geom_line(aes(x=Year, y=Price_Trade, color=Item, linetype = Trade))+
+    facet_wrap( ~ Country) + 
+    ylab("Price in (2010) constant USD /m3")
 ```
 
 ![plot of chunk tradePricesByCountry](figure/tradePricesByCountry.png) 
@@ -182,10 +209,10 @@ ggplot(data = subset(pptrade, !Country %in% c("Slovakia", "Malta"))) + geom_line
 ### Trade prices for Sweden, Germany, France and Finland
 
 ```r
-# Sweden Germany France Finland
-ggplot(data = subset(pptrade, Country %in% c("Sweden", "Germany", "France", "Finland"))) + 
-    geom_line(aes(x = Year, y = Price_Trade, color = Item, linetype = Trade)) + facet_wrap(~Country) + 
-    ylab("Price in (2010) constant USD /m3")
+# Sweden Germany France Finland 
+ggplot(data=subset(pptrade, Country%in%c("Sweden", "Germany", "France", "Finland"))) +
+    geom_line(aes(x=Year, y=Price_Trade, color=Item, linetype = Trade))  + 
+    facet_wrap( ~ Country) + ylab("Price in (2010) constant USD /m3")
 ```
 
 ![plot of chunk tradePricesSGFF](figure/tradePricesSGFF.png) 
@@ -200,9 +227,8 @@ Number of countries for a given demand volume in million m3
 
 ```r
 # 1980, 1990, 2000, 2010
-pp4hist = subset(pp, Year %in% c(1980, 1990, 2000, 2010) & Item == "Total Paper and Paperboard")
-ggplot(data = pp4hist) + geom_histogram(aes(x = Consumption/1e+06), binwidth = 1) + 
-    facet_wrap(~Year)
+pp4hist = subset(pp, Year%in%c(1980, 1990, 2000, 2010)&Item=="Total Paper and Paperboard")
+ggplot(data=pp4hist) + geom_histogram(aes(x=Consumption/1e6), binwidth=1) + facet_wrap(~Year)
 ```
 
 ![plot of chunk histdemand](figure/histdemand.png) 
@@ -211,8 +237,7 @@ Number of countries for a given demand volume in log of the volume in m3
 
 ```r
 # Consumption in log
-ggplot(data = pp4hist) + geom_histogram(aes(x = log(Consumption)), binwidth = 1) + 
-    facet_wrap(~Year)
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(Consumption)), binwidth=1) + facet_wrap(~Year)
 ```
 
 ![plot of chunk histdemandlog](figure/histdemandlog.png) 
@@ -221,7 +246,7 @@ ggplot(data = pp4hist) + geom_histogram(aes(x = log(Consumption)), binwidth = 1)
 ## Distribution of prices
 
 ```r
-ggplot(data = pp4hist) + geom_histogram(aes(x = log(Price)), binwidth = 0.1) + facet_wrap(~Year)
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(Price)), binwidth=0.1) + facet_wrap(~Year)
 ```
 
 ![plot of chunk histGDPlog1](figure/histGDPlog1.png) 
@@ -230,8 +255,7 @@ ggplot(data = pp4hist) + geom_histogram(aes(x = log(Price)), binwidth = 0.1) + f
 ## Distribution of GDP
 
 ```r
-ggplot(data = pp4hist) + geom_histogram(aes(x = log(GDPconstantUSD)), binwidth = 1) + 
-    facet_wrap(~Year)
+ggplot(data=pp4hist) + geom_histogram(aes(x=log(GDPconstantUSD)), binwidth=1) + facet_wrap(~Year)
 ```
 
 ![plot of chunk histGDPlog2](figure/histGDPlog2.png) 
@@ -250,7 +274,7 @@ Lets look at the relationship between log(Consumption) and log(GDP) first.
 Data for 2000 and beyond in red
 
 ```r
-plot(log(Consumption) ~ log(GDPconstantUSD), data = subset(pp, Item == "Total Paper and Paperboard"))
+plot(log(Consumption) ~ log(GDPconstantUSD), data=subset(pp, Item=="Total Paper and Paperboard"))
 ```
 
 ```
@@ -258,8 +282,8 @@ plot(log(Consumption) ~ log(GDPconstantUSD), data = subset(pp, Item == "Total Pa
 ```
 
 ```r
-points(log(Consumption) ~ log(GDPconstantUSD), data = subset(pp, Item == "Total Paper and Paperboard" & 
-    Year > 1999), col = "red")
+points(log(Consumption) ~ log(GDPconstantUSD), 
+     data=subset(pp, Item=="Total Paper and Paperboard"&Year>1999), col="red")
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
@@ -269,12 +293,12 @@ points(log(Consumption) ~ log(GDPconstantUSD), data = subset(pp, Item == "Total 
 Sort countries by Net_Trade, then display a color for each country
 
 ```r
-d = data.frame(s = c(45, 43))
-ppc = subset(pp, Item == "Total Paper and Paperboard" & Year == 2012)
-ppc = ppc[order(ppc$Net_Trade), ]
-pp$Country = factor(pp$Country, levels = ppc$Country, ordered = TRUE)
-p = ggplot(pp, aes(x = log(GDPconstantUSD), y = log(Consumption))) + facet_wrap(~Item)
-p + geom_point(aes(alpha = Year, color = Country))
+d=data.frame(s=c(45,43))
+ppc = subset(pp, Item=="Total Paper and Paperboard"&Year==2012)
+ppc = ppc[order(ppc$Net_Trade),]
+pp$Country = factor(pp$Country, levels= ppc$Country, ordered=TRUE)
+p = ggplot(pp, aes(x=log(GDPconstantUSD), y=log(Consumption))) + facet_wrap(~Item)
+p + geom_point(aes(alpha=Year, color=Country))  
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
@@ -284,10 +308,10 @@ Check the [ggplot shape parameter](http://sape.inf.usi.ch/quick-reference/ggplot
 
 ```r
 
-p = ggplot(data = subset(pp, Item == "Printing and Writing Paper"), aes(x = log(GDPconstantUSD), 
-    y = log(Consumption))) + facet_wrap(~Item)
-p + scale_shape_identity() + geom_point(aes(color = Country, shape = 1 + 2 * (Net_Trade > 
-    0)))
+p = ggplot(data=subset(pp, Item=="Printing and Writing Paper"),
+           aes(x=log(GDPconstantUSD), y=log(Consumption))) + facet_wrap(~Item)
+p + scale_shape_identity() +
+    geom_point(aes(color=Country, shape=1 + 2*(Net_Trade>0) ))
 ```
 
 ![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
@@ -297,7 +321,7 @@ p + scale_shape_identity() + geom_point(aes(color = Country, shape = 1 + 2 * (Ne
 ### Total Paper and Paperboard
 
 ```r
-plot(log(Consumption) ~ log(Price), data = subset(pp, Item == "Total Paper and Paperboard"))
+plot(log(Consumption) ~ log(Price), data=subset(pp, Item=="Total Paper and Paperboard"))
 ```
 
 ```
@@ -305,8 +329,8 @@ plot(log(Consumption) ~ log(Price), data = subset(pp, Item == "Total Paper and P
 ```
 
 ```r
-points(log(Consumption) ~ log(Price), data = subset(pp, Item == "Total Paper and Paperboard" & 
-    Year == 2012), col = "red")
+points(log(Consumption) ~ log(Price), 
+       data=subset(pp, Item=="Total Paper and Paperboard"&Year==2012), col="red")
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
@@ -315,8 +339,8 @@ points(log(Consumption) ~ log(Price), data = subset(pp, Item == "Total Paper and
 ### All products
 
 ```r
-p = ggplot(pp, aes(x = log(Price), y = log(Consumption), alpha = Year)) + facet_wrap(~Item)
-p + geom_point(aes(color = Country, alpha = Year))
+p = ggplot(pp,aes(x=log(Price), y=log(Consumption), alpha=Year)) + facet_wrap(~Item)
+p + geom_point(aes(color=Country, alpha=Year)) 
 ```
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
@@ -326,10 +350,10 @@ Countries that trade less seem to have higher prices.
 Change point shapes with a "+" sign for positive net trade and a "o" sign for negative net trade. Show only Printing and writing paper for this graph.
 
 ```r
-p = ggplot(data = subset(pp, Item == "Printing and Writing Paper"), aes(x = log(Price), 
-    y = log(Consumption))) + facet_wrap(~Item)
-p + scale_shape_identity() + geom_point(aes(color = Country, alpha = Year, shape = 1 + 
-    2 * (Net_Trade > 0)))
+p = ggplot(data=subset(pp, Item=="Printing and Writing Paper"),
+           aes(x=log(Price), y=log(Consumption))) + facet_wrap(~Item)
+p +  scale_shape_identity() + 
+    geom_point(aes(color=Country, alpha=Year, shape=1 + 2*(Net_Trade>0) )) 
 ```
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
@@ -346,6 +370,13 @@ EU15 = unique(wb$Country[wb$EU15==1])
 # Create a column consumption at year t-1
 pp = ddply(pp, .(Country,Item), mutate, 
            Consum_t_1 = c(NA,Consumption[-length(Consumption)]))
+```
+
+```
+## Warning: duplicated levels in factors are deprecated
+```
+
+```r
 
 # Select same data as in the chasamil paper
 chasamil = subset(pp, Year>=1969&Year<=1992&Country%in%EU15 & 
@@ -362,17 +393,26 @@ pchasamil <- plm.data(chasamil, index=c("Country","Year"))
 
 ```r
 pooling <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
-    data = pchasamil, model = "pooling")
+               data=pchasamil, model= "pooling")
+```
+
+```
+## Warning: NaNs produced
+```
+
+duplicate couples (time-id)
+
+```
+## Error:
+```
+
+```r
 printSummaryTable(pooling)
 ```
 
-<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Tue Feb 04 18:28:47 2014 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> X.Intercept. </TH> <TH> log.GDPconstantUSD. </TH> <TH> log.Price. </TH> <TH> log.Consum_t_1. </TH>  </TR>
-  <TR> <TD align="right"> Estimate </TD> <TD align="right"> -1.08 </TD> <TD align="right"> 0.11 </TD> <TD align="right"> -0.08 </TD> <TD align="right"> 0.91 </TD> </TR>
-  <TR> <TD align="right"> Std. Error </TD> <TD align="right"> 0.50 </TD> <TD align="right"> 0.03 </TD> <TD align="right"> 0.05 </TD> <TD align="right"> 0.02 </TD> </TR>
-   </TABLE>
+```
+## Error: object 'pooling' not found
+```
 
 
 ```r
@@ -380,32 +420,7 @@ summary(pooling)
 ```
 
 ```
-## Oneway (individual) effect Pooling Model
-## 
-## Call:
-## plm(formula = log(Consumption) ~ log(GDPconstantUSD) + log(Price) + 
-##     log(Consum_t_1), data = pchasamil, model = "pooling")
-## 
-## Unbalanced Panel: n=12, T=23-24, N=287
-## 
-## Residuals :
-##     Min.  1st Qu.   Median  3rd Qu.     Max. 
-## -1.04000 -0.06780  0.00362  0.07020  0.67300 
-## 
-## Coefficients :
-##                     Estimate Std. Error t-value Pr(>|t|)    
-## (Intercept)          -1.0845     0.5026   -2.16  0.03179 *  
-## log(GDPconstantUSD)   0.1085     0.0306    3.55  0.00046 ***
-## log(Price)           -0.0803     0.0505   -1.59  0.11335    
-## log(Consum_t_1)       0.9097     0.0235   38.65  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Total Sum of Squares:    474
-## Residual Sum of Squares: 9.49
-## R-Squared      :  0.98 
-##       Adj. R-Squared :  0.966 
-## F-statistic: 4617.43 on 3 and 283 DF, p-value: <2e-16
+## Error: object 'pooling' not found
 ```
 
 
@@ -413,28 +428,43 @@ summary(pooling)
 
 ```r
 fixed <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
-    data = pchasamil, model = "within")
+               data=pchasamil, model= "within")
+```
+
+```
+## Warning: NaNs produced
+```
+
+duplicate couples (time-id)
+
+```
+## Error:
+```
+
+```r
 printSummaryTable(fixed)
 ```
 
-<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Tue Feb 04 18:28:47 2014 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> log.GDPconstantUSD. </TH> <TH> log.Price. </TH> <TH> log.Consum_t_1. </TH>  </TR>
-  <TR> <TD align="right"> Estimate </TD> <TD align="right"> 0.68 </TD> <TD align="right"> -0.11 </TD> <TD align="right"> 0.64 </TD> </TR>
-  <TR> <TD align="right"> Std. Error </TD> <TD align="right"> 0.10 </TD> <TD align="right"> 0.06 </TD> <TD align="right"> 0.05 </TD> </TR>
-   </TABLE>
+```
+## Error: object 'fixed' not found
+```
 
 
 ### Random effects estimator
 
 ```r
 random <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
-    data = pchasamil, model = "random")
+               data=pchasamil, model= "random")
 ```
 
 ```
-## Error: the estimated variance of the individual effect is negative
+## Warning: NaNs produced
+```
+
+duplicate couples (time-id)
+
+```
+## Error:
 ```
 
 ```r

@@ -1,16 +1,5 @@
 Demand for paper and paperboard products in the European Union
 ========================================================
-* [Overview of EU Consumption, Production and Trade](#CPT)
-* [Consumption at the country level](#Consumption)
- * [Total consumption by Country](#TCbyCountry)
- * [Consumption of Graphics paper and other paper by Country](#CGPOpapbyCountry)
- * [Consumption and net trade by Country](#CNTbyCountry)
-* [GDP by Country](#GDPbyCountry)
-* [Prices](#Prices)
-* [Distribution of the estimation data for 4 important years](#Distribution)
-* [Plot log of the estimation data](#EstimationData)
-* [Panel data models](#panelModel)
-
 
 ```{r setup, include=FALSE, cache=FALSE}
 library(ggplot2)
@@ -85,7 +74,6 @@ The largest consumers of paper and paperboard products are `r bigconsumers$Count
 <a name="CGPOpapbyCountry"></a>
 
 ### Apparent consumption of graphics paper and other paper and paperboard by country 
-
 ```{r graphAndOtherconsumptionbyCountry, fig.width=13, fig.height=8}
 # Create a new table with graphics papers following Lauri's comments
 ppgraph = subset(pp, Item %in% c("Newsprint","Printing and Writing Paper"))
@@ -105,8 +93,22 @@ ggplot(data=ppgraph)+
 
 ```
 
-<a name="CNTbyCountry"></a>
+### Heat map of consumption per capita
+Consumption of total paper and paperboard in $$m^3$$ per habitant.
+```{r heatmap}
+# add population data
+pp = merge(pp, wb[c("Country","Population")])
+ggplot(data=subset(pp, Item=="Total Paper and Paperboard"), aes(Year, Country)) +
+    geom_tile(aes(fill = 1000*Consumption/Population), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue")
 
+ggplot(data=pp, aes(Year, Country)) +
+    geom_tile(aes(fill = 1000*Consumption/Population), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue") + facet_wrap(~Item)
+```
+
+
+<a name="CNTbyCountry"></a>
 ### Consumption and Net Trade by Country
 Apparent consumption and Net Trade of Total paper and paperboard by country 
 ```{r consumptionNetTradebyCountry, fig.width=13, fig.height=8}

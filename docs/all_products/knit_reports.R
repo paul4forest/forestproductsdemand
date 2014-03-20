@@ -1,86 +1,61 @@
 #
-# Generate Reports for the different forest products using brew
+# Generate Reports for the different forest products
 # 
 # Inspired by 
 # http://botthoughts.wordpress.com/2012/05/17/generating-reports-for-different-data-sets-using-brew-and-knitr/
+# I first used brew + knitr, but then used knitr only
 
-library(brew)
-# library(tools)
 library(knitr)
+library(markdown)
+opts_knit$set(base.dir = './docs/all_products/') # Change the base dir where to save figures
 
 #############
 # Load data #
 #############
-print(load("enddata/EU27 sawnwood demand.rdata"))
-print(load("enddata/EU27 paper products demand.rdata"))
-
-
-###############
-# knitr alone #
-###############
-# setwd() is not good but didn't  find a better way
-# I have asked a question about knitr's figure placement on StackOverflow:
-# http://stackoverflow.com/questions/21582402/knitr-how-to-set-a-figure-path-in-knit2html-without-using-setwd
-setwd("./docs/all_products/")
-dtfagg = ppagg
-knit2html("template.Rmd", "pp.html")
-dtfagg = swdagg
-knit2html("template.Rmd", "swd.html")
-setwd("../..")
-
+load("enddata/EU28 paper products.rdata")
+load("enddata/EU28 sawnwood.rdata")
+load("enddata/EU28 roundwood.rdata")
+load("enddata//world Bank GDP defl pop")
 
 ##################
-# Brew and knitr #
+# Create reports #
 ##################
-# setwd() is not good but didn't  find a better way
-# I have asked a question about knitr's figure placement on StackOverflow:
-# http://stackoverflow.com/questions/21582402/knitr-how-to-set-a-figure-path-in-knit2html-without-using-setwd
-setwd("./docs/all_products/")
-dtfagg = "swdagg"
-brew("template.brew.Rmd", "template_swd.Rmd")
-knit2html("template_swd.Rmd", "swd.html")
-dtfagg = "ppagg"
-brew("template.brew.Rmd", "template_pp.Rmd")
-knit2html("template_pp.Rmd", "pp.html")
-setwd("../..")
-
-
-###################
-# Without setwd() #
-###################
-dtfagg = "swdagg"
-brew("./docs/all_products/template.brew.Rmd", "./docs/all_products/template_swd.Rmd")
-# Rmd to markdown file
-knit("./docs/all_products/template_test.Rmd", "./docs/all_products/bli3.md")
-# Or Rmd directly to html
-knit2html("./docs/all_products/template_test.Rmd", "./docs/all_products/bli3.html",  new.env() )
-# The issue is that figures are storred in the root project directory 
-# instead of in  .docs/all_products/figure
-# What does new.env() do?
-
-
-#######################################
-# Put this function into .code/func.r #
-#######################################
-create.report <- function(dtf.name, dtfagg.name, path = "docs/all_products/"){
-    rnw.file <- paste0(prepend, x, ".Rnw")
-    brew('template.Rnw', rnw.file)
-    knit(rnw.file)
-    latex.file <- paste0(prepend, x, ".tex")
-    texi2pdf(latex.file, clean = TRUE, quiet = TRUE)
-    out.file <- paste0(prepend, x, ".pdf")
-    return(out.file)
+# A function that create reports based on the template and product endata
+create.report <- function(product.data, path="./docs/all_products/"){
+    knit2html(paste0(path,"template.Rmd"),
+              paste0(path, product.data$metadata$title, ".html"), 
+              options = c(markdownHTMLOptions(defaults=TRUE), "toc"))
 }
 
+create.report(roundwood)
+create.report(sawnwood)
+create.report(paperproducts)                 
 
 
-## sof
-knit2html("./subdir/file.Rmd", "./subdir/file.html")
+##############################################
+# Combined report for roundwood and sawnwood #
+##############################################
+# Hack! This should rather be done in the load or clean script.
+rwd_swd <- list(entity = rbind(roundwood$entity,
+                               sawnwood$entity),
+                eu_aggregates = rbind(roundwood$eu_aggregates,
+                                      sawnwood$eu_aggregates),
+                
+                trade = rbind(roundwood$trade, 
+                              sawnwood$trade),
+                metadata = list(unit = "M3", title = "Roundwood and Sawnwood"))
 
-setwd("./subdir/")
-knit2html("file.Rmd", "file.html")
+# Keep only total values
+rwd_swd$entity <- rwd_swd$entity[grep("Total",rwd_swd$entity$Item),]
+rwd_swd$eu_aggregates <- rwd_swd$eu_aggregates[grep("Total",rwd_swd$eu_aggregates$Item),]
+rwd_swd$trade <- rwd_swd$trade[grep("Total",rwd_swd$trade$Item),]
 
-# Create reports 
-create.report()
+create.report(rwd_swd)
 
+
+
+##############################################################
+# Combined report for roundwood, sawnwood and paper products #
+##############################################################
+# Volumes have to be converted in volume equivalent roundwood
 

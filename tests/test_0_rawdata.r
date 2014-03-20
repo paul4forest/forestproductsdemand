@@ -25,7 +25,7 @@ EU = read.csv("rawdata/EUCountries.csv", as.is=TRUE)
 context("In ./rawdata, test FAO data")
 
 test_that("There are 27 countries in the EU table", {
-    expect_that(nrow(EU), equals(27)) 
+    expect_that(nrow(EU), equals(28)) 
 })
 
 test_that("EU production of 3 paper products match total", {

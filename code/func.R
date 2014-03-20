@@ -7,9 +7,9 @@ require(xtable)
 
 FAO <- list() # A list of FAO functions and metadata
 
-################
-# FAO metadata #
-################
+############### #
+# FAO metadata  #
+############### #
 # Element contain the production and trade flow codes
 FAO$elementTable <- subset(FAOmetaTable$elementTable, domainCode=="FO")
 
@@ -63,9 +63,9 @@ FAO$regioncodes <-  structure(list(FAOST_CODE = c(5000L,
                               class = "data.frame")
 
 
-##############################
+############################# #
 # Functions to load FAO data #
-##############################
+############################# #
 # Function that finds an item name given its code
 FAO$itemname <- function(itemcode){
     i = subset(FAOmetaTable$itemTable, itemCode==itemcode&domainCode=="FO")
@@ -103,9 +103,9 @@ FAO$download <- function(item, elem1, elem2, elem3, elem4, elem5){
 }
 
 
-#############################################
+############################################ #
 # Functions to display data analysis in Rmd #
-#############################################
+############################################ #
 # Print a summary table of estimation coefficients of a model
 printSummaryTable <- function(model){
     coefs <- round(data.frame(t(summary(model)$coefficients[,1:2])),3)

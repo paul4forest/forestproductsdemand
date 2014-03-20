@@ -1,5 +1,7 @@
 Paper Product Consumption models
 ========================================================
+* change prices to fictive euro prices to see if exchange rates 
+have an effect on the significance of the estimated price elasticities.
 
 ```{r setup, include=FALSE, cache=FALSE}
 library(ggplot2)
@@ -19,20 +21,24 @@ FAOSTAT is the source of forest products data and
 World Bank is the source of GDP, deflator and exchange rate data.  
 ```{r load, results='show', warning=FALSE, message=FALSE, cache=FALSE}
 source("code/func.r")
-print(load("enddata/EU27 paper products demand.rdata"))
-pp <- paperProducts # Give a shorter name to the data frame
+print(load("enddata/EU28 paper products base year 1987.rdata"))
+print(load("enddata/world Bank GDP defl pop"))
+pp <- paperproducts$entity # Give a shorter name to the data frame
 EU15 <- unique(wb$Country[wb$EU15==1])
 ```
 
 ### Prepare data
-```{r prepare}
+```{r prepare_data}
 # Create a column consumption at year t-1
 pp <- ddply(pp, .(Country,Item), mutate, 
            Consum_t_1 = c(NA,Consumption[-length(Consumption)]))
 
+
 # Select same data as in the chasamil paper
 chasamil <- subset(pp, Year>=1969&Year<=1992&Country%in%EU15 & 
-                      Item=="Printing and Writing Paper", select=-Item)
+                      Item=="Total Paper and Paperboard")
+
+# GDP per capita
 
 ```
 Le panel est il cylindré?
@@ -40,6 +46,142 @@ Le panel est il cylindré?
 OLS by country
 --------------
 The Worldbank databank doesn't contain a deflator for Ireland over the time period of interest. Therefore we couldn't calculate a GDP in constant USD for Ireland.
+
+
+### For all countries in the dataset
+```{r }
+#Remove Ireland because it doesn't have GDPConstantUSD Data
+chasamil <- subset(chasamil, Country!="Ireland")
+# Remove 1969 for Germany because Germany doesn't have GDP for that year
+chasamil <- subset(chasamil, !(Country=="Germany"&Year==1969))
+
+# A function that returns coefficients and sd of the dynamic model to a country 
+dynModelCountry = function(dtf){
+  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
+           data=dtf)
+  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
+  coefs$Country = unique(dtf$Country)
+  if (nrow(coefs)==2){
+    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
+  }
+  return(coefs)
+}
+
+# Test the model for one country
+dynModelCountry(subset(chasamil,Country=="France"))
+```
+
+```{r results='asis'}
+# # Apply the dynamic model to each and all countries
+x = ddply(chasamil, .(Country), dynModelCountry)
+
+# Reorder and rename columns for esthetical reasons
+x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
+         "log.Consum_t_1.", "R_Squared")]
+names(x) = c("Country", "Y", "P", "Dt_1", "R2")
+x$Country[is.na(x$R2)] = ""
+x[,-1] = round(x[,-1],2)
+x$Y[is.na(x$R2)] = paste("(", x$Y[is.na(x$R2)], ")", sep="")
+x$P[is.na(x$R2)] = paste("(", x$P[is.na(x$R2)], ")", sep="")
+x$Dt_1[is.na(x$R2)] = paste("(", x$Dt_1[is.na(x$R2)], ")", sep="")
+
+# Print table to html
+print(xtable(x, caption="Demand equations for total paper and paperboard by country", 
+             label="DemandByCountry"),  type = "html")
+
+```
+
+
+Same model using Euro values, only from 1978
+--------------------------------------------
+```{r}
+dynModelCountry_EUR = function(dtf){
+  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price_EUR) + log(Consum_t_1),
+           data=dtf)
+  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
+  coefs$Country = unique(dtf$Country)
+  if (nrow(coefs)==2){
+    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
+  }
+  return(coefs)
+}
+xUS = ddply(subset(chasamil, Year>=1978), .(Country), dynModelCountry)
+xEUR = ddply(subset(chasamil, Year>=1978), .(Country), dynModelCountry_EUR)
+```
+
+On the subject of Cochrane Orcutt method, [John Fox wrote](https://stat.ethz.ch/pipermail/r-help/2002-January/017774.html): "I'm not sure why you'd want to use these methods, other than for 
+historical reasons." And he gave a function cochrane.orcutt.lm which takes a linear-model object as an input.
+
+
+Autocorrelation
+---------------
+```{r eval=FALSE}
+fr <- subset(chasamil, Country=="France", select=c("Consumption","GDPconstantUSD",
+                                                   "Price", "Consum_t_1"))
+
+m_fr = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
+          data=fr)
+summary(m_fr)
+
+resid <- data.frame(r = m_fr$residuals[-1],
+                    r_t_1 = m_fr$residuals[-length(m_fr$residuals)])
+
+mr_fr <- lm(r ~ r_t_1, data=resid)
+summary(mr_fr)
+
+
+# Function from https://stat.ethz.ch/pipermail/r-help/2002-January/017774.html
+cochrane.orcutt.lm <- function(mod){
+     X <- model.matrix(mod)
+     y <- model.response(model.frame(mod))
+     e <- residuals(mod)
+     n <- length(e)
+     names <- colnames(X)
+     rho <- sum(e[1:(n-1)]*e[2:n])/sum(e^2)
+     y <- y[2:n] - rho * y[1:(n-1)]
+     X <- X[2:n,] - rho * X[1:(n-1),]
+     mod <- lm(y ~ X - 1)
+     result <- list()
+     result$coefficients <- coef(mod)
+     names(result$coefficients) <- names
+     summary <- summary(mod, corr = F)
+     result$cov <- (summary$sigma^2) * summary$cov.unscaled
+     dimnames(result$cov) <- list(names, names)
+     result$sigma <- summary$sigma
+     result$rho <- rho
+     class(result) <- 'cochrane.orcutt'
+     result
+     }
+
+summary(m_fr)
+cochrane.orcutt.lm(m_fr)
+
+
+
+m_fi = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
+           data=subset(chasamil, Country=="Finland", 
+                       select=c("Consumption","GDPconstantUSD","Price", "Consum_t_1")))
+summary(m_fi)
+cochrane.orcutt.lm(m_fi)
+
+
+m_au = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
+           data=subset(chasamil, Country=="Austria", 
+                       select=c("Consumption","GDPconstantUSD","Price", "Consum_t_1")))
+summary(m_au)
+cochrane.orcutt.lm(m_au)
+```
+
+
+Correlation between model variables
+```{r eval=FALSE}
+cor(fr)
+```
+
+
+
+Statistical tests
+-----------------
 
 ### Serial temporal autocorrelation on one country
 ```{r}
@@ -60,60 +202,16 @@ autocorr <- function(dtf){
 }
 a = ddply(chasamil, .(Country), autocorr)
 autocorrTable <- melt(a, id.vars = c("Country"))
-ggplot(autocorrTable) + aes(x=variable, y=value) + geom_bar() + facet_wrap(~Country)
+ggplot(autocorrTable) + aes(x=variable, y=value) +
+    geom_bar(stat="identity") + facet_wrap(~Country)
 ```
 
-
-### For all countries in the dataset
-```{r }
-#Remove Ireland because it doesn't have GDPConstantUSD Data
-chasamil <- subset(chasamil, Country!="Ireland")
-# Remove 1969 for Germany because Germany doesn't have GDP for that year
-chasamil <- subset(chasamil, !(Country=="Germany"&Year==1969))
-
-# A function that applies the dynamic model to a country 
-dynModelCountry = function(dtf){
-  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
-           data=dtf)
-  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
-  coefs$Country = unique(dtf$Country)
-  if (nrow(coefs)==2){
-    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
-  }
-  return(coefs)
-}
-
-# Test the model for one country
-dynModelCountry(subset(chasamil,Country=="France"))
-
-# # Apply the dynamic model to each and all countries
-x = ddply(chasamil, .(Country), dynModelCountry)
-
-# Reorder and rename columns for esthetical reasons
-x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
-         "log.Consum_t_1.", "R_Squared")]
-names(x) = c("Country", "Y", "P", "Dt_1", "R2")
-x$Country[is.na(x$R2)] = ""
-x[,-1] = round(x[,-1],2)
-x$Y[is.na(x$R2)] = paste("(", x$Y[is.na(x$R2)], ")", sep="")
-x$P[is.na(x$R2)] = paste("(", x$P[is.na(x$R2)], ")", sep="")
-x$Dt_1[is.na(x$R2)] = paste("(", x$Dt_1[is.na(x$R2)], ")", sep="")
-
-# Print table to html
-print(xtable(x, caption="Demand equations for total paper and paperboard by country", 
-             label="DemandByCountry"),  type = "html")
-
-```
-
-On the subject of Cochrane Orcutt method, [John Fox wrote](https://stat.ethz.ch/pipermail/r-help/2002-January/017774.html): "I'm not sure why you'd want to use these methods, other than for 
-historical reasons." And he gave a function cochrane.orcutt.lm which takes a linear-model object as an input.
 
 
 Panel data models
 -----------------
 Over the 1960 - 1992 estimation period.
 ```{r}
-
 # Set data as panel data
 pchasamil <- plm.data(chasamil, index=c("Country","Year"))
 ```

@@ -1,7 +1,10 @@
 This R program estimates demand elasticites for forest products with respect to price and revenue.
 
 
-**Data sources**: FAOSTAT and World Bank downloaded with the FAOSTAT module  
+**Data sources**: 
+* FAOSTAT for production volumes (in T or M^3), import and export volume and value (in USD)
+* World Bank for GDP Population, Exchange rates and deflators
+* FED St Louis for EUR to USD Exchange Rate before 1999. Euro Community (DISCONTINUED SERIES)
 **Output**: Graphs and table of estimated elasticities   
 **Author**: Paul Rougieux, European Forest Institute  
 <a href="http://www.efi.int"><img src="docs/efi/efi_logo_rgb_small_siw.jpg" alt="efi_logo_rgb_small_siw.jpg : 17Kb" border="0" height="54" width="50"></a>
@@ -87,6 +90,9 @@ Deflate out GDP inpact as first start to analyse effects beyond the economic imp
 * Is sawwwod a substitue or a complement for other material?
 
 by PR  by order of importance
+* add a list of metadata containing main product title, unit of measurement and currencies
+* Try [htmlepreview](https://github.com/htmlpreview/htmlpreview.github.com) to render pages hosted on github
+* in func.R change the way FAO$regioncodes is loaded. 
 * in func.R, FAO$regioncodes, Add year of entry into the EU for EU countries
 * Add a column indicating which aggregates a Country belongs to in the 
  FAO$countrycodes table in func.R
@@ -105,3 +111,9 @@ Change log
 ----------
 February 2014 in ./code/func.R created lists of functions, 
 Similar to the knitr options functions, see str(opts_knit).
+
+Had trouble with sorting pictures for 
+Had to use setwd() which is not good but didn't  find a better way.
+I have asked a question about knitr's figure placement on StackOverflow:
+http://stackoverflow.com/questions/21582402/knitr-how-to-set-a-figure-path-in-knit2html-without-using-setwd
+

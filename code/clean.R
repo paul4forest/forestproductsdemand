@@ -10,17 +10,21 @@
 #             Consumption volume for EU 27 countries
 #
 # Author: Paul Rougieux - European Forest Institute
- 
+#
+# See tests in the /tests directory
+#
+
 library(plyr)
 library(reshape2)
 library(FAOSTAT) # May remove it if I don't use it
 
-baseyear = 2010 # Define the baseyear for constant GDP calculations and price deflator
-# !! add baseyear in file title !!
+# Define the baseyear for constant GDP calculations and price deflator
+baseyear = 2010 
+# baseyear will be added in the file title when data is saved to ./enddata
 
-# See tests in the /tests directory
 
-########## Load FAOSTAT and World Bank data ############### #
+
+### Load FAOSTAT and World Bank data ################
 load("rawdata/Paper and paperboard.rdata")
 load("rawdata/sawnwood.RData")
 load("rawdata/roundwood.RData")
@@ -54,7 +58,7 @@ wb = merge(wb, subset(EU, select=c(ISO2_WB_CODE, ExchRLCUtoEuro, EU15) ))
 
 
 #################################################################### #
-# Convert Exchrate in Euro area countries to the Euro exchange rate ####
+### Convert Exchrate in Euro area countries to the Euro exchange rate ####
 #################################################################### #
 # Euro exchange rate to dollard from World Bank
 exchr.euro = subset(GDPDeflExchRPop, Country=="Euro area"&Year>=1999, select=c(Year, ExchR)) 
@@ -119,18 +123,31 @@ EURExchR <- rbind(EURExchR, subset(EUR, Year>1998, select=c(Year, ExchR)))
 EUR <- merge(EURExchR, subset(EUR, select=-c(ExchR)), by="Year", all.y=TRUE)
 
 ############################################# #
-# Calculate GDP in constant USD of base year ####
+### Calculate GDP in constant USD of base year ####
 ############################################# #
+wb <- merge(wb,US[c("Year", "DeflUS")] )
+wb <- merge(wb,EUR[c("Year", "DeflEUR")] )
+
+
+# in a Previous calculation, I took a different deflator for each country
+#             GDPconstantUSD = GDPcurrentLCU / (DeflBase * ExchReur[Year==baseyear])
+
 wb <- ddply(wb, .(Country), mutate,
-           GDPconstantUSD = GDPcurrentLCU / (DeflBase * ExchReur[Year==baseyear]))
+            # Use US deflator
+            GDPconstantUSD = GDPcurrentLCU / (DeflUS * ExchReur[Year==baseyear]), 
+            # Calculate GDP in constant EUR of base year
+            # GDPcurrentLCU is in euro for euro countries. Even before 1999.
+            # Therefore we only need to multiply it by the deflator
+            # Following line should use a EUR ExchR for non euro country
+            GDPconstantEUR = GDPcurrentLCU / (DeflEUR))
+
+
 
 ########################## #
 ########################## #
-## Clean  FAOSTAT   data ####
+### Clean  FAOSTAT   data ####
 ########################## #
 ########################## #
-
-
 
 ############################################### #
 # Calculate apparent consumption and net trade  #
@@ -254,7 +271,7 @@ removeProdTradeKeepConsPrice = function(dtf){
  
 
 ################################### #
-# Changes specific to each product #####
+### Changes specific to each product #####
 ################################### #
 # Changes specific to paper products
 # Rename item vectors
@@ -329,7 +346,7 @@ roundwood <- list(entity = removeProdTradeKeepConsPrice(rwd),
                   
 
 ################### #
-# Save to end data ####
+### Save to end data ####
 ################### #
 save(paperproducts, file = paste0("enddata/EU28 paper products base year ",baseyear,".rdata"))
 

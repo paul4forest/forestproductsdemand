@@ -14,99 +14,95 @@ options(width=80)
 ```
 
 
-Data
+Load Data
 ----
-### Load 
 FAOSTAT is the source of forest products data and
 World Bank is the source of GDP, deflator and exchange rate data.  
 ```{r load, results='show', warning=FALSE, message=FALSE, cache=FALSE}
 source("code/func.r")
-print(load("enddata/EU28 paper products base year 1987.rdata"))
-print(load("enddata/world Bank GDP defl pop"))
+load("enddata/EU28 paper products base year 1987.rdata")
+load("enddata/world Bank GDP defl pop 1987.rdata")
 pp <- paperproducts$entity # Give a shorter name to the data frame
+# Add GDPconstantEUR
+pp <- merge(pp, wb[c("Country", "Year", "GDPconstantEUR")], all.x=TRUE)
 EU15 <- unique(wb$Country[wb$EU15==1])
 ```
 
-### Prepare data
 ```{r prepare_data}
 # Create a column consumption at year t-1
 pp <- ddply(pp, .(Country,Item), mutate, 
            Consum_t_1 = c(NA,Consumption[-length(Consumption)]))
 
-
 # Select same data as in the chasamil paper
-chasamil <- subset(pp, Year>=1969&Year<=1992&Country%in%EU15 & 
-                      Item=="Total Paper and Paperboard")
+chasamil <- subset(pp, Year>=1969&Year<=1992&Country%in%EU15)
+# Remove 1969 for Germany because Germany doesn't have GDP for that year
+chasamil <- subset(chasamil, !(Country=="Germany"&Year==1969))
 
-# GDP per capita
-
+# Subset only total value for the first estimations on country time series
+chasamil_tot <- subset(chasamil, Item=="Total Paper and Paperboard")
 ```
+
 Le panel est il cylindré?
 
 OLS by country
 --------------
-The Worldbank databank doesn't contain a deflator for Ireland over the time period of interest. Therefore we couldn't calculate a GDP in constant USD for Ireland.
-
-
 ### For all countries in the dataset
 ```{r }
-#Remove Ireland because it doesn't have GDPConstantUSD Data
-chasamil <- subset(chasamil, Country!="Ireland")
-# Remove 1969 for Germany because Germany doesn't have GDP for that year
-chasamil <- subset(chasamil, !(Country=="Germany"&Year==1969))
 
 # A function that returns coefficients and sd of the dynamic model to a country 
 dynModelCountry = function(dtf){
   dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
            data=dtf)
-  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
-  coefs$Country = unique(dtf$Country)
-  if (nrow(coefs)==2){
-    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
-  }
-  return(coefs)
+  dym$Country = unique(dtf$Country)
+  return(dym)
 }
 
-# Test the model for one country
-dynModelCountry(subset(chasamil,Country=="France"))
+# Model for one country 
+dynm_fr <- dynModelCountry(subset(chasamil_tot,Country=="France"))
+country_series_table(dynm_fr)
+# Othere way to display it 
+print(xtable(dynm_fr), type= "html")
+
+# Create a list of models
+tot_m <- dlply(chasamil_tot, .(Country), dynModelCountry)
+tot_m.coefs <- ldply(tot_m, country_series_table)
+
 ```
 
 ```{r results='asis'}
-# # Apply the dynamic model to each and all countries
-x = ddply(chasamil, .(Country), dynModelCountry)
-
-# Reorder and rename columns for esthetical reasons
-x = x[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
-         "log.Consum_t_1.", "R_Squared")]
-names(x) = c("Country", "Y", "P", "Dt_1", "R2")
-x$Country[is.na(x$R2)] = ""
-x[,-1] = round(x[,-1],2)
-x$Y[is.na(x$R2)] = paste("(", x$Y[is.na(x$R2)], ")", sep="")
-x$P[is.na(x$R2)] = paste("(", x$P[is.na(x$R2)], ")", sep="")
-x$Dt_1[is.na(x$R2)] = paste("(", x$Dt_1[is.na(x$R2)], ")", sep="")
-
 # Print table to html
-print(xtable(x, caption="Demand equations for total paper and paperboard by country", 
+print(xtable(tot_m.coefs,
+             caption="Demand equations for total paper and paperboard by country", 
              label="DemandByCountry"),  type = "html")
 
 ```
 
 
-Same model using Euro values, only from 1978
---------------------------------------------
-```{r}
-dynModelCountry_EUR = function(dtf){
-  dym = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price_EUR) + log(Consum_t_1),
-           data=dtf)
-  coefs = data.frame(t(summary(dym)$coefficients[,1:2]))
-  coefs$Country = unique(dtf$Country)
-  if (nrow(coefs)==2){
-    coefs$R_Squared  = c(summary(dym)$r.squared,NA)
-  }
-  return(coefs)
-}
-xUS = ddply(subset(chasamil, Year>=1978), .(Country), dynModelCountry)
-xEUR = ddply(subset(chasamil, Year>=1978), .(Country), dynModelCountry_EUR)
+### Same model from 1978 only
+```{r results='asis'}
+# Model with GDP and Price in constant USD from 1978
+tot_m <- dlply(subset(chasamil_tot, Year>=1978), .(Country), dynModelCountry)
+tot_m.coefs <- ldply(tot_m, country_series_table)
+print(xtable(tot_m.coefs,
+             caption="Tot paper Demand Model with GDP and Price in constant USD from 1978", 
+             label="DemandByCountry"),  type = "html")
+```
+
+### Same model from 1978 only using EUR price and GDP values
+```{r results='asis'}
+# Model with GDP and Price in constant EUR from 1978
+dirty <- subset(chasamil_tot, Year>=1978)
+# Rename GDPconstantEUR to GDPconstantUSD to avoid creating new functions 
+#     for dynModelCountry() and country_series_table()
+dirty$GDPconstantUSD <- dirty$GDPconstantEUR
+tot_m_EUR <- dlply(dirty, .(Country), dynModelCountry)
+tot_m_EUR.coefs <- ldply(tot_m_EUR, country_series_table)
+print(xtable(tot_m_EUR.coefs,
+             caption="Tot paper Demand Model with GDP and Price in constant EUR from 1978", 
+             label="DemandByCountry"),  type = "html")
+
+
+
 ```
 
 On the subject of Cochrane Orcutt method, [John Fox wrote](https://stat.ethz.ch/pipermail/r-help/2002-January/017774.html): "I'm not sure why you'd want to use these methods, other than for 
@@ -156,8 +152,12 @@ cochrane.orcutt.lm <- function(mod){
 summary(m_fr)
 cochrane.orcutt.lm(m_fr)
 
+# Plot autocorelation of residuals
+e <- m_fr$residuals
+n <- length(e)
+plot(e[1:(n-1)],e[2:n])
 
-
+# Same model for Fnland
 m_fi = lm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1),
            data=subset(chasamil, Country=="Finland", 
                        select=c("Consumption","GDPconstantUSD","Price", "Consum_t_1")))
@@ -213,19 +213,43 @@ Panel data models
 Over the 1960 - 1992 estimation period.
 ```{r}
 # Set data as panel data
-pchasamil <- plm.data(chasamil, index=c("Country","Year"))
+pchasamil <- plm.data(chasamil_tot, index=c("Country","Year"))
 ```
 
 ### Pooled OLS
+Estimation with pooled OLS
+$$ln D_it = \delta_0 + \delta_1 ln Y + \delta_2 ln P + \delta_3 ln D_-1 + \epsilon$$
+
+Oneway (individual) effect Pooling Model
 ```{r, results='asis'}
 pooling <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
                data=pchasamil, model= "pooling")
 printSummaryTable(pooling)
 ```
+
+* with the package plm 
 ```{r}
 summary(pooling)
 ```
 
+* With base lm is it the same model?
+```{r}
+pooling2 <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 
+               data=chasamil_tot)
+summary(pooling2)
+
+# How about adding individual country effects?
+pooling3 <- plm(log(Consumption) ~ Country + log(GDPconstantUSD) + 
+                    log(Price) + log(Consum_t_1), 
+               data=chasamil_tot)
+summary(pooling3)
+```
+```
+                         Estimate Std. Error t-value  Pr(>|t|)   
+* log(GDPconstantUSD)    0.0758327  0.0205783  3.6851 0.0002759 
+* log(Price)            -0.0330761  0.0607351 -0.5446 0.5864781    
+* log(Consum_t_1)        0.5330548  0.0508572 10.4814 < 2.2e-16 
+```
 ### Fixed effects or within estimator
 ```{r, results='asis'}
 fixed <- plm(log(Consumption) ~ log(GDPconstantUSD) + log(Price) + log(Consum_t_1), 

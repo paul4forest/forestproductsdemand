@@ -107,7 +107,29 @@ FAO$download <- function(item, elem1, elem2, elem3, elem4, elem5){
 # Functions to display data analysis in Rmd #
 ############################################ #
 # Print a summary table of estimation coefficients of a model
+# ! Could also print(xtable(model), type= "html")
 printSummaryTable <- function(model){
     coefs <- round(data.frame(t(summary(model)$coefficients[,1:2])),3)
     print(xtable(coefs), type="html")
 }
+
+# Table of estimation coefficients from a list of models
+country_series_table <- function(model){
+    coefs = data.frame(t(summary(model)$coefficients[,1:2]))
+    coefs$Country = model$Country
+    if (nrow(coefs)==2){
+        coefs$R_Squared  = c(summary(model)$r.squared,NA)
+    }
+    coefs = coefs[c( "Country", "log.GDPconstantUSD.", "log.Price.", 
+                     "log.Consum_t_1.", "R_Squared")]
+    names(coefs) = c("Country", "Y", "P", "Dt_1", "R2")
+    coefs$Country[is.na(coefs$R2)] = ""
+    coefs[,-1] = round(coefs[,-1],2)
+    # Format std. Error rows
+    coefs$Y[is.na(coefs$R2)] = paste("(", coefs$Y[is.na(coefs$R2)], ")", sep="")
+    coefs$P[is.na(coefs$R2)] = paste("(", coefs$P[is.na(coefs$R2)], ")", sep="")
+    coefs$Dt_1[is.na(coefs$R2)] = paste("(", coefs$Dt_1[is.na(coefs$R2)], ")", sep="")
+    coefs[is.na(coefs)] <- "" # Remove NA value under R2 column on std.Error row
+    return(coefs)
+}
+

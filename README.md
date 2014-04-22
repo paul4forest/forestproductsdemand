@@ -1,5 +1,8 @@
 This R program estimates demand elasticites for forest products with respect to price and revenue.
 
+! This project has been moved to a private repository
+-----------------------------------------------------
+As of April 2014, contact paul.rougieux at efi.int if you are interested in these R scripts.
 
 **Data sources**: 
 * FAOSTAT for production volumes (in T or M^3), import and export volume and value (in USD)
@@ -9,17 +12,17 @@ This R program estimates demand elasticites for forest products with respect to 
 **Author**: Paul Rougieux, European Forest Institute  
 <a href="http://www.efi.int"><img src="docs/efi/efi_logo_rgb_small_siw.jpg" alt="efi_logo_rgb_small_siw.jpg : 17Kb" border="0" height="54" width="50"></a>
 
-Forest Products Demand Statistics 
----------------------------------
+! This project has been moved to a private repository
+---------------------------------------------------
 ### Paper and Paperboard
-We started writting the program while reproducing estimates 
+We started writing the program while reproducing estimates 
  of demand elasticities in a paper by Chas Amil and Buongiorno.
  This paper covered EU15 countries from 1969 to 1995.
  See our attempt at reproducing the same estimates in the folder: **./docs/ChasAmil2000**  
 
 
 We then extended the data coverage up to the most recent available Year (2012)
- and to 27 contries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. 
+ and to 27 countries in the European Union. For an overview of consumption, and prices of paper products in EU25 over the 50 years period. 
  
 You will find descriptive statistics for paper products demand in the EU under the folder **./docs/paper_products**, in [explore.md](./docs/paper_products/explore.md) or [explore.html](./docs/paper_products/explore.html) 
 
@@ -82,12 +85,12 @@ by AL
 * Check impact of local price with respect to international price when estimating demand functions
 
 by LH 
-* Structural change will be different in graffics paper:
-newsprint + printing & writting paper as in packaging paper for example.
+* Structural change will be different in grafics paper:
+newsprint + printing & writing paper as in packaging paper for example.
 Packaging is included under other paper and paper board
 When analysing demand for forest products
-Deflate out GDP inpact as first start to analyse effects beyond the economic impacts
-* Is sawwwod a substitue or a complement for other material?
+Deflate out GDP impact as first start to analyse effects beyond the economic impacts
+* Is sawnwod a substitute or a complement for other material?
 
 by PR  by order of importance
 * add a list of metadata containing main product title, unit of measurement and currencies
